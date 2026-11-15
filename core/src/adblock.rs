@@ -44,6 +44,25 @@ pub const HIDE_SELECTORS: &[&str] = &[
     "iframe[src*='doubleclick.net']",
     "iframe[src*='googlesyndication.com']",
     ".taboola, .trc_rbox_container, .OUTBRAIN",
+    ".ad-container",
+    ".ad-wrapper",
+    ".ad-unit",
+    ".ads-holder",
+    ".ad_slot",
+    ".ad-slot",
+    ".native-ad",
+    ".sponsored-post",
+    "[class*='popunder']",
+    "[id*='popunder']",
+    "[data-ad-client]",
+    "[data-ad-format]",
+    "iframe[src*='adnxs.com']",
+    "iframe[src*='criteo.com']",
+    "iframe[src*='amazon-adsystem.com']",
+    "iframe[src*='rubiconproject.com']",
+    "iframe[src*='pubmatic.com']",
+    "iframe[src*='outbrain.com']",
+    "iframe[src*='taboola.com']",
 ];
 
 /// Vrai si `host` est un domaine bloqué ou l'un de ses sous-domaines.
@@ -102,16 +121,32 @@ pub fn init_script() -> String {
   if (window.__lbAdblock) return;
   window.__lbAdblock = true;
   var DOMAINS = __DOMAINS__;
+  var DOMAIN_SET = (typeof Set !== "undefined") ? new Set(DOMAINS) : null;
   var SELECTORS = __SELECTORS__;
   function blocked(u) {
     try {
       var h = new URL(u, location.href).hostname.toLowerCase();
-      for (var i = 0; i < DOMAINS.length; i++) {
-        var d = DOMAINS[i];
-        if (h === d || h.endsWith("." + d)) return true;
+      if (DOMAIN_SET) {
+        var parts = h.split(".");
+        for (var i = 0; i < parts.length - 1; i++) {
+          if (DOMAIN_SET.has(parts.slice(i).join("."))) return true;
+        }
+      } else {
+        for (var i = 0; i < DOMAINS.length; i++) {
+          var d = DOMAINS[i];
+          if (h === d || h.endsWith("." + d)) return true;
+        }
       }
     } catch (e) {}
     return false;
+  }
+  // popup / popunder click hijacking
+  var _openWindow = window.open;
+  if (_openWindow) {
+    window.open = function (u) {
+      if (u && blocked(u)) return null;
+      return _openWindow.apply(this, arguments);
+    };
   }
   // fetch / XHR / beacon
   var _fetch = window.fetch;
