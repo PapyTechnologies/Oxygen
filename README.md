@@ -4,6 +4,8 @@
 
 [![CI](https://github.com/PapyTechnologies/Oxygen/actions/workflows/ci.yml/badge.svg)](https://github.com/PapyTechnologies/Oxygen/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=flat&logo=paypal&logoColor=white)](https://www.paypal.com/ncp/payment/3NNHCJQX4QUN4)
+[![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=flat&logo=kofi&logoColor=white)](https://ko-fi.com/papytech)
 
 Oxygen is an ultra-fast desktop web browser engineered in **Rust** and **Tauri 2**, leveraging native **WebView2** hardware-accelerated rendering. It is designed from the ground up for modest and high-end PCs alike, keeping memory footprints low while integrating privacy features, streaming tools, and an AI copilot.
 
@@ -64,6 +66,18 @@ cargo build -p lightbrowser --bin Oxygen --release
 ```
 
 The resulting binary is created at `target/release/Oxygen.exe`.
+
+---
+
+## Support & Donations
+
+Oxygen is an independent open-source project dedicated to keeping web browsing fast, private, and accessible on every PC. If you find Oxygen valuable, your support helps maintain continuous development, test hardware compatibility, and build new features!
+
+- **PayPal**: [Donate via PayPal](https://www.paypal.com/ncp/payment/3NNHCJQX4QUN4)
+- **Ko-fi**: [Support on Ko-fi](https://ko-fi.com/papytech)
+- **GitHub**: Star and follow [PapyTechnologies](https://github.com/PapyTechnologies)
+
+Every contribution and star is deeply appreciated!
 
 ---
 
