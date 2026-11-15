@@ -23,7 +23,7 @@ ureq = { version = "2", features = ["json"] }
 lightbrowser-core = { path = "../core" }
 keyring = { version = "3", features = ["windows-native"] }
 tauri-plugin-global-shortcut = "2"
-cpal = "0.15"
+cpal = "0.18"
 
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.39.1"
