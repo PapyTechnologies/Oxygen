@@ -1,6 +1,7 @@
 mod adblock;
 mod ai;
 pub(crate) mod audio_loopback;
+mod downloads;
 mod netfilter;
 mod ram;
 mod store;
@@ -24,6 +25,7 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 struct State {
     top: f64,
     ai_panel_open: bool,
+    downloads_panel_open: bool,
     active: Option<String>,
     active_is_internal: bool,
     /// ids d'onglets avec une vue vivante, du plus ancien au plus récent
@@ -36,7 +38,13 @@ static STATE: Mutex<Option<State>> = Mutex::new(None);
 
 fn with_state<R>(f: impl FnOnce(&mut State) -> R) -> R {
     let mut guard = STATE.lock().unwrap();
-    let st = guard.get_or_insert_with(|| State { top: 86.0, ai_panel_open: false, active_is_internal: true, ..Default::default() });
+    let st = guard.get_or_insert_with(|| State {
+        top: 86.0,
+        ai_panel_open: false,
+        downloads_panel_open: false,
+        active_is_internal: true,
+        ..Default::default()
+    });
     f(st)
 }
 
@@ -69,7 +77,8 @@ fn apply_layout(app: &tauri::AppHandle) {
     let fs = win.is_fullscreen().unwrap_or(false);
     let Ok((win_w, win_h)) = win_size(&win) else { return };
     let top = if fs { 0.0 } else { with_state(|s| s.top) };
-    let (panel_open, is_internal) = with_state(|s| (s.ai_panel_open, s.active_is_internal));
+    let (ai_open, dl_open, is_internal) = with_state(|s| (s.ai_panel_open, s.downloads_panel_open, s.active_is_internal));
+    let panel_open = ai_open || dl_open;
     let content_w = if panel_open && !fs && !is_internal {
         (win_w - AI_PANEL_W).max(200.0)
     } else {
@@ -85,8 +94,12 @@ fn apply_layout(app: &tauri::AppHandle) {
         let _ = if fs { ui.hide() } else { ui.show() };
     }
     if fs && panel_open {
-        with_state(|s| s.ai_panel_open = false);
+        with_state(|s| {
+            s.ai_panel_open = false;
+            s.downloads_panel_open = false;
+        });
         let _ = app.emit("ai-close-sidebar", ());
+        let _ = app.emit("downloads-close-sidebar", ());
     }
 
     let gs = app.global_shortcut();
@@ -182,7 +195,8 @@ async fn tab_show(
         return Ok(());
     }
 
-    let panel_open = with_state(|s| s.ai_panel_open);
+    let (ai_open, dl_open) = with_state(|s| (s.ai_panel_open, s.downloads_panel_open));
+    let panel_open = ai_open || dl_open;
     let content_w = if panel_open {
         (win_w - AI_PANEL_W).max(200.0)
     } else {
@@ -208,6 +222,7 @@ async fn tab_show(
                     .user_agent(USER_AGENT)
                     .initialization_script(&adblock::init_script())
                     .incognito(is_incognito)
+                    .on_download(downloads::create_download_handler(handle.clone(), is_incognito))
                     .on_navigation(move |u| {
                         if !adblock::allow_navigation(u.host_str()) {
                             return false;
@@ -305,7 +320,30 @@ async fn set_top(app: tauri::AppHandle, top_px: f64) -> Result<(), String> {
 
 #[tauri::command]
 async fn ai_set_panel_open(app: tauri::AppHandle, open: bool) -> Result<(), String> {
-    with_state(|s| s.ai_panel_open = open);
+    with_state(|s| {
+        s.ai_panel_open = open;
+        if open {
+            s.downloads_panel_open = false;
+        }
+    });
+    if open {
+        let _ = app.emit("downloads-close-sidebar", ());
+    }
+    apply_layout(&app);
+    Ok(())
+}
+
+#[tauri::command]
+async fn downloads_set_panel_open(app: tauri::AppHandle, open: bool) -> Result<(), String> {
+    with_state(|s| {
+        s.downloads_panel_open = open;
+        if open {
+            s.ai_panel_open = false;
+        }
+    });
+    if open {
+        let _ = app.emit("ai-close-sidebar", ());
+    }
     apply_layout(&app);
     Ok(())
 }
@@ -396,7 +434,15 @@ pub fn run() {
             ai::ai_push_page_text,
             ai::ai_get_config,
             ai::ai_set_config,
-            ai::ai_list_models
+            ai::ai_list_models,
+            downloads_set_panel_open,
+            downloads::downloads_get_history,
+            downloads::downloads_clear_history,
+            downloads::downloads_remove_item,
+            downloads::downloads_open_folder,
+            downloads::downloads_get_config,
+            downloads::downloads_set_config,
+            downloads::downloads_choose_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

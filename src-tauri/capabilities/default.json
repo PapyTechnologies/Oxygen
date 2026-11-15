@@ -38,6 +38,14 @@
     "allow-ai-get-page",
     "allow-ai-get-config",
     "allow-ai-set-config",
-    "allow-ai-list-models"
+    "allow-ai-list-models",
+    "allow-downloads-set-panel-open",
+    "allow-downloads-get-history",
+    "allow-downloads-clear-history",
+    "allow-downloads-remove-item",
+    "allow-downloads-open-folder",
+    "allow-downloads-get-config",
+    "allow-downloads-set-config",
+    "allow-downloads-choose-folder"
   ]
 }

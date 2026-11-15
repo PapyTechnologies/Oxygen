@@ -33,6 +33,14 @@ const COMMANDS: &[&str] = &[
     "ai_get_config",
     "ai_set_config",
     "ai_list_models",
+    "downloads_set_panel_open",
+    "downloads_get_history",
+    "downloads_clear_history",
+    "downloads_remove_item",
+    "downloads_open_folder",
+    "downloads_get_config",
+    "downloads_set_config",
+    "downloads_choose_folder",
 ];
 
 fn main() {

@@ -33,6 +33,7 @@
             </div>
             <button id="go">Aller</button>
             <button id="bookmarks-menu-btn" class="toolbar-btn" title="Favoris et historique (Ctrl+Maj+B)">★</button>
+            <button id="downloads-btn" class="toolbar-btn" title="Téléchargements" style="position: relative;">📥<span id="downloads-badge" style="display: none; position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span></button>
             <button id="stream-menu-btn" class="toolbar-btn" title="Diffusion en direct (Stream)">📡</button>
             <button id="ai-btn" class="toolbar-btn ai-btn" title="Assistant IA" aria-label="Assistant IA"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
             <div id="ram-badge" class="ram-badge" title="Mesure de la RAM en direct">RAM ≈ -- Mo</div>
@@ -250,6 +251,41 @@
                             <button id="ai-key-del" class="secondary-btn btn-delete">Suppr</button>
                         </div>
                     </details>
+                </div>
+            </section>
+
+            <!-- Panneau Téléchargements (Phase 7) -->
+            <section id="downloads-panel" class="stream-dropdown" hidden>
+                <div class="dropdown-header">
+                    <span class="stream-panel-title">📥 Téléchargements</span>
+                    <button id="downloads-close" class="dropdown-close-btn" title="Fermer">×</button>
+                </div>
+                <div class="stream-dropdown-content downloads-body">
+                    <details id="downloads-settings" style="margin-bottom: 4px; font-size: 11px; color: #9ca3af;">
+                        <summary style="cursor: pointer; user-select: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚙ Options de téléchargement</summary>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                            <label class="ai-check-row" style="color: #d1d5db; margin: 0;">
+                                <input type="checkbox" id="downloads-ask-location"> <span>Demander où enregistrer chaque fichier</span>
+                            </label>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Dossier de destination</span>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <input id="downloads-dir-display" class="stream-input" type="text" readonly style="flex: 1; font-size: 11px; cursor: default; overflow: hidden; text-overflow: ellipsis;" />
+                                    <button id="downloads-change-dir" class="secondary-btn" style="white-space: nowrap; padding: 4px 8px; font-size: 11px;">Changer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <span id="downloads-count-label" style="font-size: 11px; color: #9ca3af;">Fichiers récents</span>
+                        <button id="downloads-clear-all" class="secondary-btn" style="font-size: 11px; padding: 2px 8px;">Tout effacer</button>
+                    </div>
+
+                    <div id="downloads-list" class="downloads-list-container" style="margin-top: 6px;"></div>
+                    <div id="downloads-empty" style="text-align: center; color: #6b7280; font-size: 12px; margin-top: 30px;">
+                        Aucun téléchargement récent
+                    </div>
                 </div>
             </section>
 

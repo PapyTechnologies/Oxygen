@@ -318,6 +318,8 @@ async function setAiPanelOpen(open) {
     if (open) {
         closeDropdown();
         closeStreamDropdown();
+        const dlPanel = document.getElementById("downloads-panel");
+        if (dlPanel) dlPanel.hidden = true;
         hideSuggestions();
         panel.hidden = false;
         try {
@@ -338,11 +340,45 @@ async function setAiPanelOpen(open) {
     }
 }
 
+async function setDownloadsPanelOpen(open) {
+    const panel = document.getElementById("downloads-panel");
+    if (!panel) return;
+    if (open) {
+        closeDropdown();
+        closeStreamDropdown();
+        const aiPanel = document.getElementById("ai-panel");
+        if (aiPanel) aiPanel.hidden = true;
+        const badge = document.getElementById("downloads-badge");
+        if (badge) badge.style.display = "none";
+        hideSuggestions();
+        panel.hidden = false;
+        try {
+            await invokeTauri("downloads_set_panel_open", { open: true });
+        } catch (e) {
+            console.error("Erreur downloads_set_panel_open(true) :", e);
+        }
+        if (typeof loadDownloadsConfig === "function") {
+            await loadDownloadsConfig();
+        }
+        if (typeof refreshDownloadsList === "function") {
+            await refreshDownloadsList();
+        }
+    } else {
+        panel.hidden = true;
+        try {
+            await invokeTauri("downloads_set_panel_open", { open: false });
+        } catch (e) {
+            console.error("Erreur downloads_set_panel_open(false) :", e);
+        }
+    }
+}
+
 async function openDropdown() {
     if (dropdownOpen) return;
     dropdownOpen = true;
     closeStreamDropdown();
     setAiPanelOpen(false);
+    setDownloadsPanelOpen(false);
     hideSuggestions();
     if (bookmarksDropdown) bookmarksDropdown.style.display = "flex";
     if (dropdownSearch) dropdownSearch.value = "";
@@ -434,6 +470,7 @@ async function openStreamDropdown() {
     streamDropdownOpen = true;
     await closeDropdown();
     setAiPanelOpen(false);
+    setDownloadsPanelOpen(false);
     hideSuggestions();
     if (streamDropdown) streamDropdown.style.display = "flex";
     if (streamSource) streamSource.value = "AppWindow";
@@ -812,6 +849,7 @@ document.addEventListener("keydown", (e) => {
         closeDropdown();
         closeStreamDropdown();
         setAiPanelOpen(false);
+        setDownloadsPanelOpen(false);
     }
     if (e.ctrlKey && e.shiftKey && (e.key === "b" || e.key === "B")) {
         e.preventDefault();
@@ -1520,6 +1558,7 @@ async function initAssistantAI() {
     document.addEventListener("fullscreenchange", () => {
         if (document.fullscreenElement) {
             setAiPanelOpen(false);
+            setDownloadsPanelOpen(false);
         }
     });
 
@@ -1691,3 +1730,288 @@ async function initAssistantAI() {
     }
 }
 initAssistantAI();
+
+// ==========================================
+// Phase 7 : Gestionnaire de téléchargements
+// ==========================================
+
+let currentDownloadsConfig = { download_dir: "", ask_location: false };
+
+function formatDownloadSize(bytes) {
+    if (bytes == null || isNaN(bytes)) return "";
+    if (bytes < 1024) return bytes + " o";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " Ko";
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " Mo";
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " Go";
+}
+
+async function loadDownloadsConfig() {
+    try {
+        const cfg = await invokeTauri("downloads_get_config");
+        if (cfg) {
+            currentDownloadsConfig = cfg;
+            const dirInput = document.getElementById("downloads-dir-display");
+            if (dirInput) dirInput.value = cfg.download_dir || "";
+            const askBox = document.getElementById("downloads-ask-location");
+            if (askBox) askBox.checked = !!cfg.ask_location;
+        }
+    } catch (e) {
+        console.error("Erreur downloads_get_config:", e);
+    }
+}
+
+async function refreshDownloadsList() {
+    try {
+        const history = await invokeTauri("downloads_get_history");
+        renderDownloadsHistory(history || []);
+    } catch (e) {
+        console.error("Erreur downloads_get_history:", e);
+    }
+}
+
+function renderDownloadsHistory(items) {
+    const listEl = document.getElementById("downloads-list");
+    const emptyEl = document.getElementById("downloads-empty");
+    const countEl = document.getElementById("downloads-count-label");
+    if (!listEl) return;
+
+    if (countEl) {
+        countEl.textContent = `Fichiers récents (${items.length})`;
+    }
+
+    if (!items || items.length === 0) {
+        listEl.innerHTML = "";
+        listEl.style.display = "none";
+        if (emptyEl) emptyEl.style.display = "block";
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    listEl.style.display = "flex";
+    listEl.innerHTML = "";
+
+    items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "download-item-card";
+
+        const header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "flex-start";
+        header.style.gap = "8px";
+
+        const title = document.createElement("div");
+        title.style.fontWeight = "600";
+        title.style.fontSize = "13px";
+        title.style.color = "#f3f4f6";
+        title.style.overflow = "hidden";
+        title.style.textOverflow = "ellipsis";
+        title.style.whiteSpace = "nowrap";
+        title.style.flex = "1";
+        title.textContent = item.filename;
+        title.title = item.filename;
+
+        const badge = document.createElement("span");
+        badge.className = "download-status-badge";
+        let statusText = "Inconnu";
+        let badgeColor = "#6b7280";
+        if (item.status === "completed") {
+            statusText = "Terminé";
+            badgeColor = "#10b981";
+        } else if (item.status === "in_progress") {
+            statusText = "En cours";
+            badgeColor = "#3b82f6";
+        } else if (item.status === "failed") {
+            statusText = "Échec";
+            badgeColor = "#ef4444";
+        } else if (item.status === "cancelled") {
+            statusText = "Annulé";
+            badgeColor = "#f59e0b";
+        }
+        badge.textContent = statusText;
+        badge.style.color = badgeColor;
+        badge.style.fontSize = "10px";
+        badge.style.fontWeight = "600";
+        badge.style.textTransform = "uppercase";
+        badge.style.letterSpacing = "0.5px";
+
+        header.append(title, badge);
+
+        const meta = document.createElement("div");
+        meta.style.fontSize = "11px";
+        meta.style.color = "#9ca3af";
+        meta.style.display = "flex";
+        meta.style.flexWrap = "wrap";
+        meta.style.gap = "6px";
+        meta.style.alignItems = "center";
+
+        const domainSpan = document.createElement("span");
+        domainSpan.textContent = item.domain || "";
+
+        const sizeSpan = document.createElement("span");
+        if (item.size_bytes != null) {
+            sizeSpan.textContent = "• " + formatDownloadSize(item.size_bytes);
+        }
+
+        const dateSpan = document.createElement("span");
+        if (item.created_at) {
+            dateSpan.textContent = "• " + item.created_at;
+        }
+
+        meta.append(domainSpan, sizeSpan, dateSpan);
+
+        if (item.is_private) {
+            const privBadge = document.createElement("span");
+            privBadge.textContent = "• Navigation privée";
+            privBadge.style.color = "#a78bfa";
+            meta.append(privBadge);
+        }
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.gap = "6px";
+        actions.style.marginTop = "6px";
+
+        const openBtn = document.createElement("button");
+        openBtn.className = "secondary-btn";
+        openBtn.style.fontSize = "11px";
+        openBtn.style.padding = "3px 8px";
+        openBtn.textContent = "📂 Dossier";
+        openBtn.addEventListener("click", async () => {
+            try {
+                await invokeTauri("downloads_open_folder", { path: item.path });
+            } catch (err) {
+                showToast("Dossier : " + err);
+            }
+        });
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "secondary-btn";
+        copyBtn.style.fontSize = "11px";
+        copyBtn.style.padding = "3px 8px";
+        copyBtn.textContent = "📋 Copier chemin";
+        copyBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(item.path);
+                showToast("Chemin copié");
+            } catch (_) {
+                showToast("Erreur lors de la copie");
+            }
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "secondary-btn btn-delete";
+        delBtn.style.fontSize = "11px";
+        delBtn.style.padding = "3px 8px";
+        delBtn.textContent = "Suppr";
+        delBtn.title = "Retirer de la liste";
+        delBtn.addEventListener("click", async () => {
+            try {
+                await invokeTauri("downloads_remove_item", { id: item.id });
+                await refreshDownloadsList();
+            } catch (err) {
+                showToast("Suppression : " + err);
+            }
+        });
+
+        actions.append(openBtn, copyBtn, delBtn);
+
+        card.append(header, meta, actions);
+        listEl.appendChild(card);
+    });
+}
+
+function initDownloads() {
+    const btn = document.getElementById("downloads-btn");
+    const closeBtn = document.getElementById("downloads-close");
+    const panel = document.getElementById("downloads-panel");
+    const askBox = document.getElementById("downloads-ask-location");
+    const changeDirBtn = document.getElementById("downloads-change-dir");
+    const clearAllBtn = document.getElementById("downloads-clear-all");
+    const badge = document.getElementById("downloads-badge");
+
+    if (btn) {
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            await setDownloadsPanelOpen(panel ? panel.hidden : true);
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", async () => {
+            await setDownloadsPanelOpen(false);
+        });
+    }
+
+    if (askBox) {
+        askBox.addEventListener("change", async () => {
+            currentDownloadsConfig.ask_location = askBox.checked;
+            try {
+                await invokeTauri("downloads_set_config", { config: currentDownloadsConfig });
+            } catch (err) {
+                showToast("Erreur options : " + err);
+            }
+        });
+    }
+
+    if (changeDirBtn) {
+        changeDirBtn.addEventListener("click", async () => {
+            try {
+                const selected = await invokeTauri("downloads_choose_folder");
+                if (selected) {
+                    currentDownloadsConfig.download_dir = selected;
+                    const dirInput = document.getElementById("downloads-dir-display");
+                    if (dirInput) dirInput.value = selected;
+                    await invokeTauri("downloads_set_config", { config: currentDownloadsConfig });
+                    showToast("Dossier de téléchargement mis à jour");
+                }
+            } catch (err) {
+                showToast("Erreur dossier : " + err);
+            }
+        });
+    }
+
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener("click", async () => {
+            try {
+                await invokeTauri("downloads_clear_history");
+                await refreshDownloadsList();
+                showToast("Historique des téléchargements effacé");
+            } catch (err) {
+                showToast("Erreur effacement : " + err);
+            }
+        });
+    }
+
+    if (window.__TAURI__ && window.__TAURI__.event) {
+        window.__TAURI__.event.listen("downloads-close-sidebar", () => {
+            const p = document.getElementById("downloads-panel");
+            if (p) p.hidden = true;
+        });
+
+        window.__TAURI__.event.listen("download-started", (e) => {
+            if (badge) badge.style.display = "block";
+            const name = (e.payload && e.payload.filename) || "fichier";
+            showToast("Téléchargement démarré : " + name);
+            refreshDownloadsList();
+        });
+
+        window.__TAURI__.event.listen("download-finished", (e) => {
+            const item = e.payload;
+            const name = (item && item.filename) || "fichier";
+            if (item && item.status === "completed") {
+                showToast("Téléchargement terminé : " + name);
+            } else if (item && item.status === "failed") {
+                showToast("Échec du téléchargement : " + name);
+            }
+            refreshDownloadsList();
+        });
+
+        window.__TAURI__.event.listen("download-error", (e) => {
+            showToast("Téléchargement : " + (e.payload || "erreur"));
+        });
+    }
+
+    loadDownloadsConfig();
+}
+initDownloads();
