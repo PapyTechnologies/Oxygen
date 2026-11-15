@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ram-diagnostic"
+description = "Enables the ram_diagnostic command without any pre-configured scope."
+commands.allow = ["ram_diagnostic"]
+
+[[permission]]
+identifier = "deny-ram-diagnostic"
+description = "Denies the ram_diagnostic command without any pre-configured scope."
+commands.deny = ["ram_diagnostic"]

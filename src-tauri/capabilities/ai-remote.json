@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "ai-remote",
+  "description": "Permet à un onglet d'envoyer le texte de sa propre page à l'assistant IA, sur demande.",
+  "webviews": ["tab_*"],
+  "remote": { "urls": ["https://*/*", "http://*/*"] },
+  "permissions": ["allow-ai-push-page-text"]
+}

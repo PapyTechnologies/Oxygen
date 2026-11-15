@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-active-view-visible"
+description = "Enables the active_view_visible command without any pre-configured scope."
+commands.allow = ["active_view_visible"]
+
+[[permission]]
+identifier = "deny-active-view-visible"
+description = "Denies the active_view_visible command without any pre-configured scope."
+commands.deny = ["active_view_visible"]

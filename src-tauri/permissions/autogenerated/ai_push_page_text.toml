@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-push-page-text"
+description = "Enables the ai_push_page_text command without any pre-configured scope."
+commands.allow = ["ai_push_page_text"]
+
+[[permission]]
+identifier = "deny-ai-push-page-text"
+description = "Denies the ai_push_page_text command without any pre-configured scope."
+commands.deny = ["ai_push_page_text"]

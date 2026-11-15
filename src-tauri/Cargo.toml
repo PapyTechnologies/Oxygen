@@ -1,0 +1,31 @@
+[package]
+name = "lightbrowser"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "lightbrowser_lib"
+crate-type = ["staticlib", "rlib"]
+
+[[bin]]
+name = "Oxygen"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["unstable"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = { version = "2", features = ["json"] }
+lightbrowser-core = { path = "../core" }
+keyring = { version = "3", features = ["windows-native"] }
+tauri-plugin-global-shortcut = "2"
+cpal = "0.15"
+
+[target.'cfg(windows)'.dependencies]
+webview2-com = "0.39.1"
+windows = "0.62"
+

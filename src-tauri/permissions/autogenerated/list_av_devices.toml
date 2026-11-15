@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-av-devices"
+description = "Enables the list_av_devices command without any pre-configured scope."
+commands.allow = ["list_av_devices"]
+
+[[permission]]
+identifier = "deny-list-av-devices"
+description = "Denies the list_av_devices command without any pre-configured scope."
+commands.deny = ["list_av_devices"]
