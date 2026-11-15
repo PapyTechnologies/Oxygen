@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["unstable"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ureq = { version = "2", features = ["json"] }
+ureq = { version = "3", features = ["json"] }
 lightbrowser-core = { path = "../core" }
 keyring = { version = "3", features = ["windows-native"] }
 tauri-plugin-global-shortcut = "2"
