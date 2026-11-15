@@ -1,0 +1,33 @@
+# Rust / Cargo
+/target/
+/rust-target/
+/**/target/
+
+# Node / Frontend
+/node_modules/
+/dist/
+/.cache/
+
+# Tauri generated
+/src-tauri/target/
+/src-tauri/gen/
+
+# Sensitive files and keys
+.env*
+*.key
+*.pem
+*.pfx
+
+# Media, recordings, and temp
+*.mkv
+*.mp4
+*.log
+*.tmp
+*.zip
+
+# OS and Editors
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+*.swp
