@@ -235,6 +235,9 @@ pub fn overlay_graph_pre(w: u32, h: u32, o: &Overlay, pre: &str) -> String {
     )
 }
 
+// Clippy allowances: compatibility with Rust 1.80+ (manual_is_multiple_of) and unchanged match validation logic
+#[allow(clippy::manual_is_multiple_of)]
+#[allow(clippy::collapsible_match)]
 fn validate(c: &Config) -> Result<(), String> {
     if c.outputs.is_empty() {
         return Err("aucune destination".into());

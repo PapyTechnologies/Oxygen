@@ -1,4 +1,9 @@
 //! Module de gestion des téléchargements d'Oxygen Browser (Phase 7).
+#![allow(
+    clippy::derivable_impls,
+    clippy::upper_case_acronyms,
+    clippy::collapsible_if
+)]
 //!
 //! Sécurité stricte : nettoyage des noms de fichiers, vérification d'extension dangereuse,
 //! confinement au dossier cible, limitation de débit, et exclusion des onglets privés de l'historique.

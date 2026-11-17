@@ -1,4 +1,5 @@
 //! Assistant IA : multi-fournisseurs (Anthropic, OpenAI-compatible), clés dans le trousseau Windows.
+#![allow(clippy::manual_map, clippy::result_large_err)]
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
