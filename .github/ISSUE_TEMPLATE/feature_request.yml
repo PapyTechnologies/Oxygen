@@ -1,0 +1,35 @@
+name: Feature Request
+description: Propose a new feature, enhancement, or architectural improvement
+title: "[FEAT]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome feature ideas that align with Oxygen's philosophy: ultra-lightweight footprint, strong privacy, and robust local utility.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: Is your feature request related to a problem or current limitation?
+      placeholder: "I find it challenging to..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & Desired Behavior
+      description: Describe the solution or user experience you would like to see implemented.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions, extensions, or workarounds you've explored.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Contribution Willingness
+      options:
+        - label: I am willing to submit a Pull Request to help implement this feature.
