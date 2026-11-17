@@ -29,20 +29,29 @@
   <img src="assets/social-preview.png" alt="Aperçu d'Oxygen" width="920"/>
 </p>
 
-> *Les captures d'écran détaillées de la Navigation, du Bouclier antipub, de l'Assistant IA et du panneau de Streaming sont consultables dans le [Répertoire Screenshots](assets/screenshots/).*
+<!--
+Captures d'écran à placer dans assets/screenshots/ :
+- 01_navigation_overview.png
+- 02_adblock_protection.png
+- 03_ai_assistant.png
+- 04_live_streaming_panel.png
+- 05_downloads_manager.png
+-->
+
+> *Le guide des captures et les emplacements prévus sont détaillés dans le [Répertoire Screenshots](assets/screenshots/).*
 
 ---
 
 ## ⚡ Points Forts & Capacités Clés
 
-- **Empreinte mémoire ultra-faible** : Conçu en Rust avec l'arborescence native des processus WebView2. Intègre une hibernation intelligente LRU des onglets inactifs pour préserver la RAM sur les PC modestes (< 80 Mo de RAM au repos).
-- **Bloqueur de publicités et traqueurs natif** : Filtrage réseau ultra-rapide des requêtes et domaines directement dans le moteur Rust, sans la surcharge d'extensions tierces lourdes.
-- **Assistant IA sécurisé et cloisonné** :
+- **Empreinte mémoire maîtrisée** : Conçu en Rust avec l'arborescence native des processus WebView2. Intègre une hibernation intelligente LRU des onglets inactifs et le compactage de l'espace de travail. Les utilisateurs sont invités à mesurer leurs gains de mémoire réels via le panneau de diagnostic RAM intégré.
+- **Bloqueur de publicités et traqueurs natif** : Filtrage réseau des requêtes et domaines directement dans le moteur Rust, sans la surcharge d'extensions tierces lourdes.
+- **Assistant IA avec coffre Windows** :
+  - Clés API stockées dans le Windows Credential Manager, jamais écrites sur disque.
   - Support multi-fournisseurs : **Anthropic** (Claude), **OpenAI** (GPT-4o), **Google** (Gemini), **DeepSeek**, **OpenRouter** et **GitHub Models**.
-  - **Zéro fuite d'identifiants** : Toutes les clés API sont enregistrées exclusivement dans le **Gestionnaire d'identification de Windows** (`ai-key:<fournisseur>`), jamais sur disque ni en clair.
   - Inspection de contexte transparente : le contenu d'une page n'est analysé que sur action explicite de l'utilisateur.
 - **Diffusion en direct et capture vidéo intégrées** :
-  - Pipeline de capture DirectX Desktop Duplication (DDA) pour une latence minimale.
+  - Pipeline de capture DirectX Desktop Duplication (DDA) pour une diffusion fluide et réactive.
   - Diffusion directe RTMP vers Twitch, YouTube, Kick ou des serveurs de streaming personnalisés.
   - **Loopback audio WASAPI natif** : capture le son du système et des jeux sans câble audio virtuel tiers.
   - Encodage avec accélération matérielle (NVENC, QSV, AMF) via un processus superviseur FFmpeg externe.
@@ -163,7 +172,7 @@ flowchart TD
 ### Principes de Confidentialité & Durcissement
 - **Stockage des secrets** : Les clés d'API et jetons de streaming ne sont jamais écrits en clair sur le disque ni dans des fichiers `.env`. Ils s'appuient sur l'API Windows DPAPI sécurisée.
 - **Cloisonnement des processus** : Le code web tiers s'exécute dans les processus bac à sable (sandbox) de Microsoft WebView2, sans permissions d'accès direct au système de fichiers hôte.
-- **Télémétrie** : Zéro collecte de données utilisateur, aucun pistage externe.
+- **Télémétrie** : Aucune collecte de données utilisateur, aucun pistage externe.
 
 ---
 
