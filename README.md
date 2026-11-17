@@ -29,17 +29,6 @@
   <img src="assets/social-preview.png" alt="Oxygen Overview" width="920"/>
 </p>
 
-<!--
-Screenshots to be added into assets/screenshots/:
-- 01_navigation_overview.png
-- 02_adblock_protection.png
-- 03_ai_assistant.png
-- 04_live_streaming_panel.png
-- 05_downloads_manager.png
--->
-
-> *Visual showcase guidelines and screenshot slots are documented in the [Screenshots Guide](assets/screenshots/).*
-
 ---
 
 ## ⚡ Highlights & Key Capabilities
@@ -172,7 +161,7 @@ flowchart TD
 ### Privacy & Hardening Principles
 - **Credential Storage**: API secrets and streaming tokens are never persisted in plaintext, `.env` files, or configuration databases. They interface directly with Windows DPAPI-protected Credential Store.
 - **Process Sandboxing**: Untrusted web pages render inside Microsoft WebView2 sandboxed utility processes without direct filesystem access to your system.
-- **Telemetry**: No browser telemetry or remote phone-home tracking.
+- **Telemetry**: Oxygen does not collect or send usage data. Network requests are made only to the AI provider or streaming endpoint you configure, and to the sites you visit.
 
 ---
 
