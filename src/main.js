@@ -1211,8 +1211,16 @@ if (stopStreamBtn) {
     }
 })();
 
-// F11 bascule le plein écran
+// F11 bascule le plein écran, F1-F4 pour démonstration rapide des panneaux
 window.addEventListener("keydown", async (e) => {
+    if (e.key === "F1") { e.preventDefault(); setDownloadsPanelOpen(true); }
+    if (e.key === "F2") { e.preventDefault(); openStreamDropdown(); }
+    if (e.key === "F3") { e.preventDefault(); setAiPanelOpen(true); }
+    if (e.key === "F4") {
+        e.preventDefault();
+        urlInput.value = "https://en.wikipedia.org/wiki/Rust_(programming_language)";
+        openUrl();
+    }
     if (e.key === "F11") {
         e.preventDefault();
         try {
@@ -1225,6 +1233,24 @@ renderTabs();
 refreshBookmarks();
 refreshHistory();
 updateKeyIndicators();
+
+if (window.__TAURI__ && window.__TAURI__.event) {
+    window.__TAURI__.event.listen("oxygen-demo", (e) => {
+        const scene = e.payload;
+        if (scene === "ai") setTimeout(() => setAiPanelOpen(true), 300);
+        else if (scene === "stream") setTimeout(() => openStreamDropdown(), 300);
+        else if (scene === "downloads") setTimeout(() => setDownloadsPanelOpen(true), 300);
+        else if (scene === "web") {
+            setTimeout(() => {
+                const inp = document.getElementById("url-input");
+                if (inp) {
+                    inp.value = "https://en.wikipedia.org/wiki/Rust_(programming_language)";
+                    openUrl();
+                }
+            }, 300);
+        }
+    });
+}
 
 // Synchronise la barre d'adresse quand la page navigue d'elle-même
 (async () => {

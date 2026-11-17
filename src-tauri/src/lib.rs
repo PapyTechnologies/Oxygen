@@ -434,6 +434,14 @@ pub fn run() {
                     }
                     _ => {}
                 });
+
+                if let Ok(demo) = std::env::var("OXYGEN_DEMO_SCENE") {
+                    let h = app.handle().clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(1200));
+                        let _ = h.emit("oxygen-demo", demo);
+                    });
+                }
             }
             Ok(())
         })
