@@ -1,93 +1,215 @@
-# Oxygen Browser
+<p align="center">
+  <img src="assets/logo.svg" alt="Oxygen Logo" width="560"/>
+</p>
 
-> **Breathe the Web** — Ultra-lightweight, private, and AI-assisted browser built for speed and resource efficiency.
+<p align="center">
+  <strong>Ultra-lightweight, private, and AI-powered desktop browser built with Rust and Tauri 2.</strong><br>
+  <em>Native Adblocker • Multi-Provider AI Assistant • High-Performance Live Streaming & Audio Loopback</em>
+</p>
 
-[![CI](https://github.com/PapyTechnologies/Oxygen/actions/workflows/ci.yml/badge.svg)](https://github.com/PapyTechnologies/Oxygen/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=flat&logo=paypal&logoColor=white)](https://www.paypal.com/ncp/payment/3NNHCJQX4QUN4)
-[![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=flat&logo=kofi&logoColor=white)](https://ko-fi.com/papytech)
+<p align="center">
+  <a href="README.md">English</a> • <a href="README.fr.md">Français</a>
+</p>
 
-Oxygen is an ultra-fast desktop web browser engineered in **Rust** and **Tauri 2**, leveraging native **WebView2** hardware-accelerated rendering. It is designed from the ground up for modest and high-end PCs alike, keeping memory footprints low while integrating privacy features, streaming tools, and an AI copilot.
-
----
-
-## Key Features
-
-- **Blazing Fast & Low Footprint**: Built in Rust with native WebView2 child process trees, strict LRU tab memory unloading, and private working-set tracking.
-- **Built-in Ad & Tracker Blocker**: Fast in-engine URL matching without bloated third-party extension overhead.
-- **Secure AI Assistant**:
-  - Connects to Anthropic, OpenAI, Google Gemini, DeepSeek, OpenRouter, and GitHub Models.
-  - Transparent opt-in consent: page text is only inspected on explicit click.
-  - API keys are stored exclusively in the Windows Credential Manager vault—never saved to disk files or transmitted without user instruction.
-- **Integrated Live Streaming & Recording**:
-  - Direct live broadcasting to Twitch, YouTube, Kick, and custom RTMP endpoints.
-  - Native WASAPI system sound loopback capture without needing virtual audio cables.
-  - Hardware-accelerated encoding (NVENC, QSV, AMF) via supervisor-managed external FFmpeg pipelines.
+<p align="center">
+  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-2024%20Edition-DEA584?style=flat-square&logo=rust&logoColor=white" alt="Rust 2024"></a>
+  <a href="https://v2.tauri.app/"><img src="https://img.shields.io/badge/Tauri-2.0-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri 2"></a>
+  <a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/"><img src="https://img.shields.io/badge/Engine-WebView2-0078D7?style=flat-square&logo=microsoftedge&logoColor=white" alt="WebView2"></a>
+  <a href="https://github.com/PapyTechnologies/Oxygen/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/PapyTechnologies/Oxygen/ci.yml?branch=main&label=CI&style=flat-square" alt="CI Status"></a>
+  <a href="https://github.com/PapyTechnologies/Oxygen/releases/tag/v0.1.0"><img src="https://img.shields.io/badge/Release-v0.1.0-00ecff?style=flat-square" alt="Release v0.1.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=flat-square&logo=windows" alt="Platform: Windows 10/11">
+</p>
 
 ---
 
-## Architecture & Security Model
+## 📸 Showcase
 
-```mermaid
-flowchart TD
-    UI[Tauri Frontend / HTML-CSS-JS] <--> IPC[Tauri IPC Bridge]
-    IPC <--> RustCore[Rust Native Backend]
-    RustCore <--> WV2[WebView2 GPU Tabs]
-    RustCore <--> Keyring[Windows Credential Vault]
-    RustCore <--> Audio[WASAPI Audio Loopback]
-    RustCore <--> Stream[FFmpeg Supervisor]
-```
+<p align="center">
+  <img src="assets/social-preview.png" alt="Oxygen Overview" width="920"/>
+</p>
 
-### Privacy & Credentials Discipline
-- **Zero Local Key Leakage**: API tokens and stream keys are placed directly into the Windows Credential Vault (`ai-key:<provider>` / `stream-key:<service>`).
-- **Isolation**: Remote web content runs in sandboxed WebView2 child processes without direct host filesystem permissions.
+> *Detailed screenshots of Navigation, Shield Tracker Blocker, AI Assistant, and the Live Streaming panel can be viewed in the [Screenshots Directory](assets/screenshots/).*
 
 ---
 
-## Building from Source
+## ⚡ Highlights & Key Capabilities
 
-### Prerequisites
-1. **Rust 1.80+**: Installed via [rustup.rs](https://rustup.rs/).
-2. **Microsoft Edge WebView2**: Pre-installed on Windows 10 & 11.
-3. **FFmpeg** *(Optional, for live streaming)*: Available on system `PATH` or next to the executable.
+- **Ultralight Memory Footprint**: Engineered with Rust and native WebView2 process trees. Features active LRU tab hibernation and working-set compaction to run smoothly on modest hardware (< 80 MB RAM baseline).
+- **Native Ad & Tracker Blocker**: In-engine URL and domain rule matching inspired by EasyList patterns without the overhead of heavy browser extensions.
+- **Hardware-Isolated AI Assistant**:
+  - Multi-provider support: **Anthropic** (Claude), **OpenAI** (GPT-4o), **Google** (Gemini), **DeepSeek**, **OpenRouter**, and **GitHub Models**.
+  - **Zero credential leaks**: All API tokens are stored strictly within the **Windows Credential Manager** (`ai-key:<provider>`), never written to disk or plain text.
+  - Transparent opt-in context inspection: page contents are only analyzed upon explicit user trigger.
+- **Integrated Live Broadcasting & Screen Capture**:
+  - DirectX Desktop Duplication (DDA) screen capture pipeline for low-latency streaming.
+  - Direct RTMP broadcasting to Twitch, YouTube, Kick, or custom streaming ingest servers.
+  - Native **WASAPI system audio loopback**: captures desktop sound directly without third-party virtual audio cables.
+  - Hardware-accelerated encoding options (NVENC, QSV, AMF) via supervisor-managed external FFmpeg processes.
 
-### Compilation Steps
+---
+
+## 🖥️ System Requirements
+
+| Component | Minimum Requirement | Recommended |
+| :--- | :--- | :--- |
+| **Operating System** | Windows 10 (64-bit, build 19041+) | Windows 11 (64-bit, latest release) |
+| **Runtime** | Microsoft Edge WebView2 Evergreen | Pre-installed on Windows 10 / 11 |
+| **RAM** | 2 GB Available | 4 GB+ |
+| **Build Toolchain** | Rust 1.80+ (Stable) & Cargo | Rust 1.82+ |
+| **Live Streaming** | None (Core browser) | FFmpeg 6.0+ on `PATH` or in application folder |
+
+---
+
+## 🚀 Quickstart & Installation (5 Commands)
+
+Clone and compile Oxygen from source in five straightforward steps:
 
 ```powershell
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/PapyTechnologies/Oxygen.git
+
+# 2. Navigate to the project directory
 cd Oxygen
 
-# Run automated tests
+# 3. Verify toolchain dependencies and security ACLs
+powershell -ExecutionPolicy Bypass -File scripts/check_acl.ps1
+
+# 4. Run automated workspace unit tests
 cargo test -p lightbrowser-core
 
-# Build release executable
+# 5. Compile the optimized release binary
 cargo build -p lightbrowser --bin Oxygen --release
 ```
 
-The resulting binary is created at `target/release/Oxygen.exe`.
+The resulting optimized executable will be located at:
+```
+target\release\Oxygen.exe
+```
+
+> **Automated Setup Script**: You can also run `powershell -ExecutionPolicy Bypass -File scripts/setup_and_build.ps1` to automatically inspect Rust, WebView2, and FFmpeg before compiling.
 
 ---
 
-## Support & Donations
+## 📖 Step-by-Step Usage
 
-Oxygen is an independent open-source project dedicated to keeping web browsing fast, private, and accessible on every PC. If you find Oxygen valuable, your support helps maintain continuous development, test hardware compatibility, and build new features!
+### 1. Web Navigation & Tab Management
+- Launch `Oxygen.exe`.
+- Open tabs using `Ctrl + T` or the `+` button on the tab bar.
+- Use `Ctrl + W` to close tabs. Inactive background tabs are automatically trimmed to conserve RAM.
+
+### 2. Shield & Tracker Blocker
+- The integrated shield operates natively at network interception level.
+- Click the Shield icon in the address bar to view the real-time count of blocked ads, analytics beacons, and trackers on the active page.
+
+### 3. AI Assistant & Credential Vault
+- Open the AI panel via the sidebar button or shortcut.
+- Select your preferred model provider (Claude, GPT, Gemini, DeepSeek, etc.).
+- When prompted for an API key, enter it once. Oxygen delegates storage to the **Windows Credential Manager** under target identifier `ai-key:<provider>`.
+- Use the contextual action buttons (*Summarize*, *Explain*, *Translate*) to query the active page without leaving your workflow.
+
+### 4. Live Streaming & Recording
+- Open the Streaming panel from the toolbar.
+- Choose your video input source (Display capture via DirectX DDA or active tab window).
+- Enable **WASAPI Audio Loopback** to capture game/system sound directly.
+- Enter your RTMP URL and Stream Key (stream keys are also isolated in the Windows Credential Vault).
+- Click **Start Stream**. Oxygen spawns and supervises the background encoding pipeline.
+
+---
+
+## 🏗️ Architecture & Security Model
+
+```mermaid
+flowchart TD
+    subgraph Frontend [Tauri Frontend UI]
+        UI[Tabs / Navigation / Address Bar]
+        ShieldUI[Adblock Counter UI]
+        AIPanel[AI Assistant Sidebar]
+        StreamUI[Streaming Modal Panel]
+    end
+
+    subgraph IPC_Layer [Tauri 2 IPC Bridge]
+        Commands[Rust Tauri Commands]
+    end
+
+    subgraph Native_Backend [Oxygen Native Engine]
+        CoreEngine[lightbrowser-core: State & Rules]
+        Adblock[URL & DNS Filter Engine]
+        AudioLoopback[WASAPI Audio Loopback]
+        StreamSupervisor[FFmpeg Supervisor]
+        KeyringVault[Windows Credential Manager API]
+    end
+
+    subgraph Sandboxed_Runtimes [Isolated Subsystems]
+        WV2[WebView2 GPU Web Tabs]
+        ExtFFmpeg[External FFmpeg Pipeline]
+    end
+
+    UI <--> Commands
+    ShieldUI <--> Commands
+    AIPanel <--> Commands
+    StreamUI <--> Commands
+
+    Commands <--> CoreEngine
+    CoreEngine <--> Adblock
+    CoreEngine <--> KeyringVault
+    Commands <--> AudioLoopback
+    Commands <--> StreamSupervisor
+
+    CoreEngine <--> WV2
+    StreamSupervisor -. Spawns .- ExtFFmpeg
+```
+
+### Privacy & Hardening Principles
+- **Credential Storage**: API secrets and streaming tokens are never persisted in plaintext, `.env` files, or configuration databases. They interface directly with Windows DPAPI-protected Credential Store.
+- **Process Sandboxing**: Untrusted web pages render inside Microsoft WebView2 sandboxed utility processes without direct filesystem access to your system.
+- **Telemetry**: Zero browser telemetry or remote phone-home tracking.
+
+---
+
+## 📜 Third-Party Licenses & Disclaimers
+
+Oxygen is distributed under the **MIT License**. It interfaces with and acknowledges the following technologies:
+- **Tauri 2**: Dual-licensed MIT / Apache-2.0.
+- **Microsoft Edge WebView2**: Proprietary redistributable runtime provided by Microsoft Corporation.
+- **FFmpeg**: Standalone external tool. Oxygen does not statically or dynamically link FFmpeg code; it launches it as an external sub-process. Users providing FFmpeg binaries are subject to LGPL v2.1+ or GPL v3.0+ terms depending on compile flags (e.g. `--enable-gpl`, `--enable-libx264`).
+- **Filter Lists**: Adblock rules are inspired by open community lists (EasyList, Peter Lowe's ad server list) distributed under MPL-2.0 / GPL-3.0.
+- **Trademarks**: All trademarks and logos (YouTube, Twitch, Kick, OpenAI, Anthropic, Google, Microsoft) belong to their respective copyright holders.
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for full notices and upstream links.
+
+---
+
+## 🗺️ Roadmap
+
+- [x] Multi-tab architecture with WebView2 Evergreen backend
+- [x] Built-in ad & tracking network filter
+- [x] Multi-provider AI assistant with Windows Credential Vault storage
+- [x] WASAPI system sound loopback capture
+- [x] Live RTMP streaming supervisor
+- [ ] Direct hardware encoding via NVENC / AMF Rust bindings (zero-FFmpeg fallback)
+- [ ] Custom user script & style injector
+- [ ] Bookmark synchronization with client-side zero-knowledge encryption
+- [ ] Linux (WebKitGTK) and macOS (WebKit) cross-platform compilation targets
+
+---
+
+## 🤝 Contributing
+
+We welcome community feedback, issue reports, and pull requests! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) and review our [SECURITY.md](SECURITY.md) guidelines before opening a pull request.
+
+---
+
+## 💖 Support & Donations
+
+Oxygen is an independent open-source initiative created to keep desktop web browsing lean, private, and powerful. If you find Oxygen helpful, support its maintenance:
 
 - **PayPal**: [Donate via PayPal](https://www.paypal.com/ncp/payment/3NNHCJQX4QUN4)
 - **Ko-fi**: [Support on Ko-fi](https://ko-fi.com/papytech)
 - **GitHub**: Star and follow [PapyTechnologies](https://github.com/PapyTechnologies)
 
-Every contribution and star is deeply appreciated!
-
 ---
 
-## Contributing
+## 📄 License
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) before opening a pull request.
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details on third-party libraries and tools.
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for details.
