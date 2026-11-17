@@ -23,6 +23,10 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Move Cargo target dir outside the project tree
+        shell: pwsh
+        run: echo "CARGO_TARGET_DIR=$env:RUNNER_TEMP\cargo-target" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Cache Cargo dependencies & build outputs
         uses: Swatinem/rust-cache@v2
 
