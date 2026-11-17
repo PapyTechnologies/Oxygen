@@ -45,7 +45,9 @@ pub fn start_loopback() -> Result<LoopbackHandle, String> {
         let device = match host.default_output_device() {
             Some(d) => d,
             None => {
-                let _ = tx_ready.send(Err("Aucun périphérique audio de sortie (haut-parleur / casque) trouvé".into()));
+                let _ = tx_ready.send(Err(
+                    "Aucun périphérique audio de sortie (haut-parleur / casque) trouvé".into(),
+                ));
                 return;
             }
         };
@@ -53,7 +55,9 @@ pub fn start_loopback() -> Result<LoopbackHandle, String> {
         let supported_config = match device.default_output_config() {
             Ok(c) => c,
             Err(e) => {
-                let _ = tx_ready.send(Err(format!("Configuration du périphérique audio impossible : {e}")));
+                let _ = tx_ready.send(Err(format!(
+                    "Configuration du périphérique audio impossible : {e}"
+                )));
                 return;
             }
         };
@@ -130,10 +134,8 @@ pub fn start_loopback() -> Result<LoopbackHandle, String> {
                 device.build_input_stream(
                     &supported_config.into(),
                     move |data: &[i16], _: &cpal::InputCallbackInfo| {
-                        let f32_samples: Vec<f32> = data
-                            .iter()
-                            .map(|&s| s as f32 / 32768.0)
-                            .collect();
+                        let f32_samples: Vec<f32> =
+                            data.iter().map(|&s| s as f32 / 32768.0).collect();
                         process_samples(&f32_samples, &buf_cb);
                     },
                     |err| eprintln!("[audio_loopback] Erreur stream I16: {err}"),
@@ -141,7 +143,10 @@ pub fn start_loopback() -> Result<LoopbackHandle, String> {
                 )
             }
             _ => {
-                let _ = tx_ready.send(Err(format!("Format d'échantillon non supporté : {:?}", sample_format)));
+                let _ = tx_ready.send(Err(format!(
+                    "Format d'échantillon non supporté : {:?}",
+                    sample_format
+                )));
                 return;
             }
         };

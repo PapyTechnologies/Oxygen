@@ -12,8 +12,8 @@ use tauri::webview::DownloadEvent;
 use tauri::{AppHandle, Emitter, Manager, Webview};
 
 pub const DANGEROUS_EXTS: &[&str] = &[
-    "exe", "msi", "bat", "cmd", "ps1", "vbs", "js", "jse", "wsf",
-    "scr", "com", "pif", "lnk", "hta", "reg", "dll", "jar", "appx", "msix",
+    "exe", "msi", "bat", "cmd", "ps1", "vbs", "js", "jse", "wsf", "scr", "com", "pif", "lnk",
+    "hta", "reg", "dll", "jar", "appx", "msix",
 ];
 
 const MAX_HISTORY_ENTRIES: usize = 200;
@@ -171,9 +171,8 @@ pub fn sanitize_filename(suggested: &str) -> String {
     }
 
     let reserved = [
-        "CON", "PRN", "AUX", "NUL",
-        "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-        "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
+        "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
     ];
 
     let stem = Path::new(&trimmed)
@@ -301,9 +300,12 @@ pub fn prompt_save_file(suggested_path: &Path) -> Option<PathBuf> {
         buf[i] = c;
     }
 
-    let initial_dir: Option<Vec<u16>> = suggested_path
-        .parent()
-        .map(|p| p.as_os_str().encode_wide().chain(std::iter::once(0)).collect());
+    let initial_dir: Option<Vec<u16>> = suggested_path.parent().map(|p| {
+        p.as_os_str()
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect()
+    });
 
     let title: Vec<u16> = std::ffi::OsStr::new("Enregistrer sous...")
         .encode_wide()
@@ -322,7 +324,10 @@ pub fn prompt_save_file(suggested_path: &Path) -> Option<PathBuf> {
         nMaxFile: buf.len() as u32,
         lpstrFileTitle: std::ptr::null_mut(),
         nMaxFileTitle: 0,
-        lpstrInitialDir: initial_dir.as_ref().map(|v| v.as_ptr()).unwrap_or(std::ptr::null()),
+        lpstrInitialDir: initial_dir
+            .as_ref()
+            .map(|v| v.as_ptr())
+            .unwrap_or(std::ptr::null()),
         lpstrTitle: title.as_ptr(),
         Flags: 0x00000800 | 0x00000002,
         nFileOffset: 0,
@@ -399,7 +404,10 @@ pub fn create_download_handler(
 
                 let domain = url.host_str().unwrap_or("inconnu").to_string();
                 if !check_rate_limit(&domain) {
-                    let _ = app.emit("download-error", "Téléchargements multiples bloqués (plus de 3 en 5 secondes)");
+                    let _ = app.emit(
+                        "download-error",
+                        "Téléchargements multiples bloqués (plus de 3 en 5 secondes)",
+                    );
                     return false;
                 }
 
@@ -447,7 +455,11 @@ pub fn create_download_handler(
 
                 let now_str = chrono_like_now();
                 let item = DownloadItem {
-                    id: format!("{}_{}", std::process::id(), Instant::now().elapsed().as_nanos()),
+                    id: format!(
+                        "{}_{}",
+                        std::process::id(),
+                        Instant::now().elapsed().as_nanos()
+                    ),
                     filename: target_path
                         .file_name()
                         .map(|f| f.to_string_lossy().to_string())
@@ -470,7 +482,11 @@ pub fn create_download_handler(
                 let _ = app.emit("download-started", &item);
                 true
             }
-            DownloadEvent::Finished { url: _, path, success } => {
+            DownloadEvent::Finished {
+                url: _,
+                path,
+                success,
+            } => {
                 let path_buf = path.unwrap_or_default();
                 let path_str = path_buf.to_string_lossy().to_string();
                 let mut found_item = {
@@ -480,7 +496,11 @@ pub fn create_download_handler(
                 };
 
                 if let Some(ref mut item) = found_item {
-                    item.status = if success { "completed".into() } else { "failed".into() };
+                    item.status = if success {
+                        "completed".into()
+                    } else {
+                        "failed".into()
+                    };
                     if success && path_buf.exists() {
                         item.size_bytes = std::fs::metadata(&path_buf).ok().map(|m| m.len());
                     }
@@ -492,7 +512,11 @@ pub fn create_download_handler(
                         .map(|f| f.to_string_lossy().to_string())
                         .unwrap_or_else(|| "fichier".into());
                     let item = DownloadItem {
-                        id: format!("{}_{}", std::process::id(), Instant::now().elapsed().as_nanos()),
+                        id: format!(
+                            "{}_{}",
+                            std::process::id(),
+                            Instant::now().elapsed().as_nanos()
+                        ),
                         filename,
                         path: path_str,
                         domain: "".into(),
@@ -501,7 +525,11 @@ pub fn create_download_handler(
                         } else {
                             None
                         },
-                        status: if success { "completed".into() } else { "failed".into() },
+                        status: if success {
+                            "completed".into()
+                        } else {
+                            "failed".into()
+                        },
                         created_at: chrono_like_now(),
                         is_private,
                     };

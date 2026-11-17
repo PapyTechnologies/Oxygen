@@ -74,11 +74,8 @@ struct PROCESSENTRY32W {
 #[cfg(windows)]
 #[link(name = "psapi")]
 extern "system" {
-    fn GetProcessMemoryInfo(
-        process: isize,
-        ppsmc: *mut PROCESS_MEMORY_COUNTERS_EX,
-        cb: u32,
-    ) -> i32;
+    fn GetProcessMemoryInfo(process: isize, ppsmc: *mut PROCESS_MEMORY_COUNTERS_EX, cb: u32)
+        -> i32;
 }
 
 #[cfg(windows)]

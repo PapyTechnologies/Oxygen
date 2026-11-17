@@ -10,7 +10,9 @@ mod stream;
 use serde_json::json;
 use std::collections::HashSet;
 use std::sync::Mutex;
-use tauri::{Emitter, LogicalPosition, LogicalSize, Manager, WebviewBuilder, WebviewUrl, WindowEvent};
+use tauri::{
+    Emitter, LogicalPosition, LogicalSize, Manager, WebviewBuilder, WebviewUrl, WindowEvent,
+};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 /// Nombre maximal de webviews de sites gardées en vie (économie de RAM).
@@ -51,7 +53,13 @@ fn with_state<R>(f: impl FnOnce(&mut State) -> R) -> R {
 fn label(tab_id: &str) -> String {
     let clean: String = tab_id
         .chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect();
     format!("tab_{clean}")
 }
@@ -73,11 +81,21 @@ pub(crate) fn is_private_tab(_app: &tauri::AppHandle, view: &tauri::Webview) -> 
 }
 
 fn apply_layout(app: &tauri::AppHandle) {
-    let Some(win) = app.get_window("main") else { return };
+    let Some(win) = app.get_window("main") else {
+        return;
+    };
     let fs = win.is_fullscreen().unwrap_or(false);
-    let Ok((win_w, win_h)) = win_size(&win) else { return };
+    let Ok((win_w, win_h)) = win_size(&win) else {
+        return;
+    };
     let top = if fs { 0.0 } else { with_state(|s| s.top) };
-    let (ai_open, dl_open, is_internal) = with_state(|s| (s.ai_panel_open, s.downloads_panel_open, s.active_is_internal));
+    let (ai_open, dl_open, is_internal) = with_state(|s| {
+        (
+            s.ai_panel_open,
+            s.downloads_panel_open,
+            s.active_is_internal,
+        )
+    });
     let panel_open = ai_open || dl_open;
     let content_w = if panel_open && !fs && !is_internal {
         (win_w - AI_PANEL_W).max(200.0)
@@ -172,9 +190,12 @@ async fn tab_show(
 
     let is_incognito = incognito.unwrap_or(false);
     if is_incognito {
-        with_state(|s| { s.private_tabs.insert(tab_id.clone()); });
+        with_state(|s| {
+            s.private_tabs.insert(tab_id.clone());
+        });
     }
-    let is_streaming = app.try_state::<stream::StreamState>()
+    let is_streaming = app
+        .try_state::<stream::StreamState>()
         .map(|s| s.is_active())
         .unwrap_or(false);
 
@@ -205,8 +226,10 @@ async fn tab_show(
 
     let lbl = label(&tab_id);
     if let Some(view) = app.get_webview(&lbl) {
-        view.set_position(LogicalPosition::new(0.0, top)).map_err(|e| e.to_string())?;
-        view.set_size(LogicalSize::new(content_w, content_h)).map_err(|e| e.to_string())?;
+        view.set_position(LogicalPosition::new(0.0, top))
+            .map_err(|e| e.to_string())?;
+        view.set_size(LogicalSize::new(content_w, content_h))
+            .map_err(|e| e.to_string())?;
         if navigate {
             let parsed = tauri::Url::parse(&url).map_err(|e| e.to_string())?;
             view.navigate(parsed).map_err(|e| e.to_string())?;
@@ -222,7 +245,10 @@ async fn tab_show(
                     .user_agent(USER_AGENT)
                     .initialization_script(&adblock::init_script())
                     .incognito(is_incognito)
-                    .on_download(downloads::create_download_handler(handle.clone(), is_incognito))
+                    .on_download(downloads::create_download_handler(
+                        handle.clone(),
+                        is_incognito,
+                    ))
                     .on_navigation(move |u| {
                         if !adblock::allow_navigation(u.host_str()) {
                             return false;
@@ -233,7 +259,11 @@ async fn tab_show(
                             }
                         }
                         apply_layout(&handle);
-                        let _ = handle.emit_to("main", "url-changed", json!({ "tab": tid, "url": u.to_string() }));
+                        let _ = handle.emit_to(
+                            "main",
+                            "url-changed",
+                            json!({ "tab": tid, "url": u.to_string() }),
+                        );
                         true
                     }),
                 LogicalPosition::new(0.0, top),
@@ -250,7 +280,8 @@ async fn tab_show(
     // du déchargement automatique pour préserver la session volatile et la capture en cours.
     let to_unload: Vec<String> = with_state(|s| {
         if !is_streaming && !s.private_tabs.contains(&tab_id) {
-            s.live.retain(|t| t != &tab_id && !s.private_tabs.contains(t));
+            s.live
+                .retain(|t| t != &tab_id && !s.private_tabs.contains(t));
             s.live.push(tab_id.clone());
             let mut out = Vec::new();
             while s.live.len() > MAX_LIVE {
@@ -370,8 +401,14 @@ pub fn run() {
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
-                        let is_esc = "Escape".parse::<Shortcut>().map(|s| s == *shortcut).unwrap_or(false);
-                        let is_f11 = "F11".parse::<Shortcut>().map(|s| s == *shortcut).unwrap_or(false);
+                        let is_esc = "Escape"
+                            .parse::<Shortcut>()
+                            .map(|s| s == *shortcut)
+                            .unwrap_or(false);
+                        let is_f11 = "F11"
+                            .parse::<Shortcut>()
+                            .map(|s| s == *shortcut)
+                            .unwrap_or(false);
                         if is_esc || is_f11 {
                             exit_fullscreen(app.clone());
                         }
@@ -386,16 +423,14 @@ pub fn run() {
             ram::start_monitoring(app.handle().clone());
             if let Some(window) = app.get_window("main") {
                 let handle = app.handle().clone();
-                window.on_window_event(move |event| {
-                    match event {
-                        WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
-                            apply_layout(&handle);
-                        }
-                        WindowEvent::Destroyed => {
-                            ram::stop_monitoring();
-                        }
-                        _ => {}
+                window.on_window_event(move |event| match event {
+                    WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+                        apply_layout(&handle);
                     }
+                    WindowEvent::Destroyed => {
+                        ram::stop_monitoring();
+                    }
+                    _ => {}
                 });
             }
             Ok(())
