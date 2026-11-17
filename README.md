@@ -29,20 +29,29 @@
   <img src="assets/social-preview.png" alt="Oxygen Overview" width="920"/>
 </p>
 
-> *Detailed screenshots of Navigation, Shield Tracker Blocker, AI Assistant, and the Live Streaming panel can be viewed in the [Screenshots Directory](assets/screenshots/).*
+<!--
+Screenshots to be added into assets/screenshots/:
+- 01_navigation_overview.png
+- 02_adblock_protection.png
+- 03_ai_assistant.png
+- 04_live_streaming_panel.png
+- 05_downloads_manager.png
+-->
+
+> *Visual showcase guidelines and screenshot slots are documented in the [Screenshots Guide](assets/screenshots/).*
 
 ---
 
 ## ⚡ Highlights & Key Capabilities
 
-- **Ultralight Memory Footprint**: Engineered with Rust and native WebView2 process trees. Features active LRU tab hibernation and working-set compaction to run smoothly on modest hardware (< 80 MB RAM baseline).
-- **Native Ad & Tracker Blocker**: In-engine URL and domain rule matching inspired by EasyList patterns without the overhead of heavy browser extensions.
-- **Hardware-Isolated AI Assistant**:
+- **Lean Memory Footprint**: Engineered with Rust and native WebView2 process trees. Features active LRU tab hibernation and working-set compaction to conserve memory across workloads. Users can inspect their real-time memory usage directly via the browser's built-in RAM diagnostic panel.
+- **Native Ad & Tracker Blocker**: In-engine URL and domain rule matching inspired by EasyList patterns without the overhead of heavy third-party extensions.
+- **AI Assistant with Windows Credential Vault**:
+  - API keys stored in the Windows Credential Manager, never written to disk.
   - Multi-provider support: **Anthropic** (Claude), **OpenAI** (GPT-4o), **Google** (Gemini), **DeepSeek**, **OpenRouter**, and **GitHub Models**.
-  - **Zero credential leaks**: All API tokens are stored strictly within the **Windows Credential Manager** (`ai-key:<provider>`), never written to disk or plain text.
   - Transparent opt-in context inspection: page contents are only analyzed upon explicit user trigger.
 - **Integrated Live Broadcasting & Screen Capture**:
-  - DirectX Desktop Duplication (DDA) screen capture pipeline for low-latency streaming.
+  - DirectX Desktop Duplication (DDA) screen capture pipeline for responsive streaming.
   - Direct RTMP broadcasting to Twitch, YouTube, Kick, or custom streaming ingest servers.
   - Native **WASAPI system audio loopback**: captures desktop sound directly without third-party virtual audio cables.
   - Hardware-accelerated encoding options (NVENC, QSV, AMF) via supervisor-managed external FFmpeg processes.
@@ -163,7 +172,7 @@ flowchart TD
 ### Privacy & Hardening Principles
 - **Credential Storage**: API secrets and streaming tokens are never persisted in plaintext, `.env` files, or configuration databases. They interface directly with Windows DPAPI-protected Credential Store.
 - **Process Sandboxing**: Untrusted web pages render inside Microsoft WebView2 sandboxed utility processes without direct filesystem access to your system.
-- **Telemetry**: Zero browser telemetry or remote phone-home tracking.
+- **Telemetry**: No browser telemetry or remote phone-home tracking.
 
 ---
 

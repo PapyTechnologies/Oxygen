@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Multi-tab web browser powered by Tauri 2 and WebView2 Evergreen architecture.
-- Built-in network ad-blocking engine with zero-overhead URL pattern filtration.
+- Built-in network ad-blocking engine with in-engine URL pattern filtration.
 - Integrated AI assistant panel supporting Anthropic, OpenAI, Google Gemini, DeepSeek, OpenRouter, and GitHub Models.
 - Windows Credential Manager integration for secure API token storage (`ai-key:<provider>`).
 - Live streaming and video capture supervisor using external FFmpeg pipelines with hardware acceleration support.

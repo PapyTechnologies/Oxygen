@@ -97,7 +97,7 @@ try {
 if (-not $ffmpegFound) {
     Write-Host " [OPTIONAL - NOT DETECTED]" -ForegroundColor Yellow
     Write-Host "      FFmpeg is not installed on PATH." -ForegroundColor DarkGray
-    Write-Host "      Core browser functions will work 100% fine without FFmpeg." -ForegroundColor DarkGray
+    Write-Host "      Core browser functions will work normally without FFmpeg." -ForegroundColor DarkGray
     Write-Host "      To enable live RTMP streaming, download FFmpeg from: https://www.gyan.dev/ffmpeg/builds/" -ForegroundColor DarkGray
     Write-Host "      Place 'ffmpeg.exe' in your PATH or in the same folder as Oxygen.exe." -ForegroundColor DarkGray
 }
