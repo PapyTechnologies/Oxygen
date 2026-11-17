@@ -18,12 +18,27 @@
 *.pem
 *.pfx
 
-# Media, recordings, and temp
+# Binaries and build artifacts
+*.exe
+*.dll
+*.msi
+*.pdb
+*.rlib
+
+# Sub-crates Cargo.lock (root Cargo.lock is tracked)
+core/Cargo.lock
+src-tauri/Cargo.lock
+
+# Media, recordings, captures and temp
 *.mkv
 *.mp4
 *.log
 *.tmp
 *.zip
+*.rec
+captures/
+recordings/
+screenshots_private/
 
 # OS and Editors
 Thumbs.db
