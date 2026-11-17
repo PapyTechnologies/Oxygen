@@ -1,4 +1,12 @@
 //! Diffusion en direct (YouTube / Twitch / Kick / TikTok) via un sidecar FFmpeg.
+#![allow(
+    clippy::doc_overindented_list_items,
+    clippy::upper_case_acronyms,
+    clippy::too_many_arguments,
+    clippy::match_like_matches_macro,
+    clippy::needless_borrow,
+    clippy::lines_filter_map_ok
+)]
 //!
 //! INTÉGRATION
 //! 1. Cargo.toml (src-tauri) : keyring = "3"  |  serde = { version = "1", features = ["derive"] }
