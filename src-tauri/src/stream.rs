@@ -17,8 +17,8 @@
 //! Non compilé dans cet environnement (pas de toolchain Rust) : à valider avec `cargo check`.
 
 use lightbrowser_core::stream_args::{
-    build_args, list_devices_args, parse_dshow_devices, probe_args, probe_ddagrab_args, redact_args, Config, Corner,
-    Encoder, Overlay, Source,
+    build_args, list_devices_args, parse_dshow_devices, probe_args, probe_ddagrab_args,
+    redact_args, Config, Corner, Encoder, Overlay, Source,
 };
 use serde::Deserialize;
 use std::io::Write;
@@ -189,8 +189,12 @@ fn get_window_region(hwnd: isize) -> Option<(i32, i32, u32, u32, bool)> {
 
         w = (w / 2) * 2;
         h = (h / 2) * 2;
-        if w < 2 { w = 2; }
-        if h < 2 { h = 2; }
+        if w < 2 {
+            w = 2;
+        }
+        if h < 2 {
+            h = 2;
+        }
 
         let fg = GetForegroundWindow();
         let mut fg_pid = 0u32;
@@ -198,7 +202,10 @@ fn get_window_region(hwnd: isize) -> Option<(i32, i32, u32, u32, bool)> {
         let my_pid = std::process::id();
         let tree_pids = crate::ram::get_tree_pids(my_pid);
         let is_our_process = fg == hwnd || tree_pids.contains(&fg_pid);
-        let is_fullscreen = x == 0 && y == 0 && w >= (screen_w as u32).saturating_sub(10) && h >= (screen_h as u32).saturating_sub(10);
+        let is_fullscreen = x == 0
+            && y == 0
+            && w >= (screen_w as u32).saturating_sub(10)
+            && h >= (screen_h as u32).saturating_sub(10);
         let is_active = is_vis && (is_our_process || is_fullscreen);
 
         Some((x, y, w, h, is_active))
@@ -251,12 +258,16 @@ pub fn save_stream_key(platform: String, key: String) -> Result<(), String> {
     if key.trim().is_empty() {
         return Err("clé vide".into());
     }
-    entry(&platform)?.set_password(key.trim()).map_err(|e| e.to_string())
+    entry(&platform)?
+        .set_password(key.trim())
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub fn delete_stream_key(platform: String) -> Result<(), String> {
-    entry(&platform)?.delete_credential().map_err(|e| e.to_string())
+    entry(&platform)?
+        .delete_credential()
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -375,7 +386,11 @@ fn supervise(
     stamp: u64,
     app_window_hwnd: Option<isize>,
 ) {
-    let _guard = EndGuard { active: st.active.clone(), gen: st.gen.clone(), my_gen };
+    let _guard = EndGuard {
+        active: st.active.clone(),
+        gen: st.gen.clone(),
+        my_gen,
+    };
     let current = || st.gen.load(Ordering::SeqCst) == my_gen;
     let (mut attempts, mut part) = (0u32, 1u32);
     let mut established = false; // au moins un flux a tenu 10 s (sinon : clé/URL invalide, pas de boucle)
@@ -401,7 +416,8 @@ fn supervise(
                         let is_min = win.is_minimized().unwrap_or(false) && !is_fs;
                         if is_min && !was_minimized {
                             was_minimized = true;
-                            let _ = app.emit("stream-warning", "Fenêtre réduite : l'image est figée");
+                            let _ =
+                                app.emit("stream-warning", "Fenêtre réduite : l'image est figée");
                         } else if !is_min && was_minimized {
                             was_minimized = false;
                             let _ = app.emit("stream-warning", "Fenêtre restaurée");
@@ -409,11 +425,15 @@ fn supervise(
                     }
                 }
 
-                if app_window_hwnd.is_some() && last_region_check.elapsed() >= Duration::from_millis(500) {
+                if app_window_hwnd.is_some()
+                    && last_region_check.elapsed() >= Duration::from_millis(500)
+                {
                     last_region_check = Instant::now();
                     #[cfg(windows)]
                     if let Some(h) = app_window_hwnd {
-                        if let Some((_cur_x, _cur_y, _cur_w, _cur_h, is_active)) = get_window_region(h) {
+                        if let Some((_cur_x, _cur_y, _cur_w, _cur_h, is_active)) =
+                            get_window_region(h)
+                        {
                             let should_pause = !is_active;
                             let target_source = if should_pause {
                                 Source::Pause(pause_image_path())
@@ -424,7 +444,10 @@ fn supervise(
                             if target_source != cfg.source {
                                 if should_pause && !was_paused {
                                     was_paused = true;
-                                    let _ = app.emit("stream-warning", "Diffusion en pause : Oxygen est en arrière-plan");
+                                    let _ = app.emit(
+                                        "stream-warning",
+                                        "Diffusion en pause : Oxygen est en arrière-plan",
+                                    );
                                 } else if !should_pause && was_paused {
                                     was_paused = false;
                                     let _ = app.emit("stream-warning", "Diffusion reprise");
@@ -503,7 +526,10 @@ fn supervise(
         attempts += 1;
 
         // Journalisation de diagnostic stderr (sans clé de flux) et de l'état du superviseur
-        eprintln!("[stream] FFmpeg s'est arrêté (code {:?}) après {:?}", code, lived);
+        eprintln!(
+            "[stream] FFmpeg s'est arrêté (code {:?}) après {:?}",
+            code, lived
+        );
         if let Ok(g) = st.stderr_lines.lock() {
             if !g.is_empty() {
                 eprintln!("[stream] Dernières lignes stderr FFmpeg (clés masquées) :");
@@ -515,7 +541,10 @@ fn supervise(
         let delay = (1u64 << attempts.min(5)).min(30);
         eprintln!(
             "[stream-superviseur] Tentative {}/{}, délai : {}s, flux actif : {}",
-            attempts, MAX_ATTEMPTS, delay, st.active.load(Ordering::SeqCst)
+            attempts,
+            MAX_ATTEMPTS,
+            delay,
+            st.active.load(Ordering::SeqCst)
         );
 
         if !auto_reconnect || !established || attempts > MAX_ATTEMPTS {
@@ -524,7 +553,13 @@ fn supervise(
             return;
         }
 
-        let _ = app.emit("stream-reconnecting", Reconnecting { attempt: attempts, delay_s: delay });
+        let _ = app.emit(
+            "stream-reconnecting",
+            Reconnecting {
+                attempt: attempts,
+                delay_s: delay,
+            },
+        );
         for _ in 0..(delay * 4) {
             std::thread::sleep(Duration::from_millis(250));
             if !current() {
@@ -533,7 +568,11 @@ fn supervise(
         }
 
         // Si capture loopback active, recréer le serveur loopback
-        let is_loopback = cfg.system_audio_device.as_deref().map(|s| s.starts_with("tcp://127.0.0.1:")).unwrap_or(false);
+        let is_loopback = cfg
+            .system_audio_device
+            .as_deref()
+            .map(|s| s.starts_with("tcp://127.0.0.1:"))
+            .unwrap_or(false);
         if is_loopback && current() {
             if let Ok(mut g) = st.loopback.lock() {
                 g.take();
@@ -571,7 +610,11 @@ fn supervise(
 }
 
 #[tauri::command]
-pub fn start_stream(app: AppHandle, state: State<StreamState>, mut args: StartArgs) -> Result<(), String> {
+pub fn start_stream(
+    app: AppHandle,
+    state: State<StreamState>,
+    mut args: StartArgs,
+) -> Result<(), String> {
     if state.active.load(Ordering::SeqCst) {
         return Err("diffusion déjà en cours".into());
     }
@@ -587,8 +630,9 @@ pub fn start_stream(app: AppHandle, state: State<StreamState>, mut args: StartAr
         _ => false,
     };
     if is_loopback {
-        let handle = crate::audio_loopback::start_loopback()
-            .map_err(|e| format!("Échec démarrage capture son ordinateur (WASAPI loopback) : {e}"))?;
+        let handle = crate::audio_loopback::start_loopback().map_err(|e| {
+            format!("Échec démarrage capture son ordinateur (WASAPI loopback) : {e}")
+        })?;
         args.system_audio_device = Some(format!("tcp://127.0.0.1:{}", handle.port));
         if let Ok(mut g) = state.loopback.lock() {
             *g = Some(handle);
@@ -600,7 +644,9 @@ pub fn start_stream(app: AppHandle, state: State<StreamState>, mut args: StartAr
     let app_window_hwnd: Option<isize> = if matches!(args.source, SourceDto::AppWindow) {
         #[cfg(windows)]
         {
-            app.get_window("main").and_then(|w| w.hwnd().ok()).map(|h| h.0 as isize)
+            app.get_window("main")
+                .and_then(|w| w.hwnd().ok())
+                .map(|h| h.0 as isize)
         }
         #[cfg(not(windows))]
         {
@@ -691,7 +737,18 @@ pub fn start_stream(app: AppHandle, state: State<StreamState>, mut args: StartAr
     st.active.store(true, Ordering::SeqCst);
 
     let reconnect = args.auto_reconnect.unwrap_or(true);
-    std::thread::spawn(move || supervise(app, ffmpeg, cfg, st, my_gen, reconnect, stamp, app_window_hwnd));
+    std::thread::spawn(move || {
+        supervise(
+            app,
+            ffmpeg,
+            cfg,
+            st,
+            my_gen,
+            reconnect,
+            stamp,
+            app_window_hwnd,
+        )
+    });
     Ok(())
 }
 
@@ -703,7 +760,11 @@ pub fn stop_stream(state: State<StreamState>) -> Result<(), String> {
     if let Ok(mut g) = state.loopback.lock() {
         g.take();
     }
-    let child = state.child.lock().map_err(|_| "état verrouillé".to_string())?.take();
+    let child = state
+        .child
+        .lock()
+        .map_err(|_| "état verrouillé".to_string())?
+        .take();
     if let Some(mut c) = child {
         if let Some(stdin) = c.stdin.as_mut() {
             let _ = stdin.write_all(b"q\n"); // arrêt propre : finalise le MKV
@@ -742,5 +803,8 @@ pub fn list_av_devices() -> Result<DevicesDto, String> {
         .map_err(|e| format!("ffmpeg introuvable : {e}"))?;
     // La liste sort sur stderr ; le code retour 1 est normal avec « -i dummy ».
     let d = parse_dshow_devices(&String::from_utf8_lossy(&out.stderr));
-    Ok(DevicesDto { video: d.video, audio: d.audio })
+    Ok(DevicesDto {
+        video: d.video,
+        audio: d.audio,
+    })
 }

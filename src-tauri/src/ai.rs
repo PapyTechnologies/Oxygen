@@ -45,9 +45,9 @@ fn default_tokens() -> Option<u32> {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ProviderCfg {
-    pub id: String,        // "anthropic", "openai", "gemini", "deepseek", "openrouter", "github", "custom"
+    pub id: String, // "anthropic", "openai", "gemini", "deepseek", "openrouter", "github", "custom"
     pub name: String,
-    pub protocol: String,  // "anthropic" | "openai"
+    pub protocol: String, // "anthropic" | "openai"
     pub base_url: String,
     pub models: HashMap<String, String>, // "fast" | "balanced" | "strong" -> id modèle
     #[serde(default = "default_tokens")]
@@ -168,7 +168,8 @@ fn migrate_obsolete_defaults(p: &mut ProviderCfg) {
             if p.models.get("balanced").map(|s| s.as_str()) == Some("anthropic/claude-3.5-sonnet") {
                 p.models.remove("balanced");
             }
-            if p.models.get("fast").map(|s| s.as_str()) == Some("meta-llama/llama-3.3-70b-instruct") {
+            if p.models.get("fast").map(|s| s.as_str()) == Some("meta-llama/llama-3.3-70b-instruct")
+            {
                 p.models.remove("fast");
             }
             if p.models.get("strong").map(|s| s.as_str()) == Some("openai/gpt-4o") {
@@ -336,7 +337,9 @@ pub fn ai_save_key(app: AppHandle, provider_id: Option<String>, key: String) -> 
 #[tauri::command]
 pub fn ai_delete_key(app: AppHandle, provider_id: Option<String>) -> Result<(), String> {
     let pid = provider_id.unwrap_or_else(|| load_ai_config(&app).active_provider);
-    key_entry(&pid)?.delete_credential().map_err(|e| e.to_string())
+    key_entry(&pid)?
+        .delete_credential()
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -433,7 +436,10 @@ pub async fn ai_check_key(app: AppHandle, provider_id: Option<String>) -> Result
 }
 
 #[tauri::command]
-pub async fn ai_list_models(app: AppHandle, provider_id: Option<String>) -> Result<Vec<String>, String> {
+pub async fn ai_list_models(
+    app: AppHandle,
+    provider_id: Option<String>,
+) -> Result<Vec<String>, String> {
     let cfg = load_ai_config(&app);
     let pid = provider_id.unwrap_or(cfg.active_provider.clone());
     let provider = cfg
@@ -493,7 +499,9 @@ pub async fn ai_list_models(app: AppHandle, provider_id: Option<String>) -> Resu
                     .filter_map(|m| {
                         if let Some(id) = m["id"].as_str() {
                             Some(id.to_string())
-                        } else if let (Some(publ), Some(name)) = (m["publisher"].as_str(), m["name"].as_str()) {
+                        } else if let (Some(publ), Some(name)) =
+                            (m["publisher"].as_str(), m["name"].as_str())
+                        {
                             Some(format!("{publ}/{name}"))
                         } else if let Some(name) = m["name"].as_str() {
                             Some(name.to_string())
@@ -509,8 +517,15 @@ pub async fn ai_list_models(app: AppHandle, provider_id: Option<String>) -> Resu
                     }
                 } else if provider.id == "openai" || provider.base_url.contains("api.openai.com") {
                     let non_chat = [
-                        "realtime", "audio", "transcribe", "tts", "live", "embedding",
-                        "moderation", "whisper", "cyber",
+                        "realtime",
+                        "audio",
+                        "transcribe",
+                        "tts",
+                        "live",
+                        "embedding",
+                        "moderation",
+                        "whisper",
+                        "cyber",
                     ];
                     models.retain(|m| {
                         let lower = m.to_ascii_lowercase();
@@ -609,7 +624,9 @@ fn call_anthropic(
                 .and_then(|v| v["error"]["message"].as_str().map(String::from))
                 .unwrap_or_default();
             Err(match code {
-                301 | 302 | 307 | 308 => "redirection bloquée par sécurité (risque de fuite de clé)".into(),
+                301 | 302 | 307 | 308 => {
+                    "redirection bloquée par sécurité (risque de fuite de clé)".into()
+                }
                 401 | 403 => "clé API refusée".into(),
                 429 => "limite de requêtes atteinte, réessaie dans un moment".into(),
                 503 | 529 => "service momentanément surchargé, réessaie".into(),
@@ -650,9 +667,7 @@ fn call_openai_compat(
     };
 
     let send = |body: serde_json::Value| {
-        let mut req = agent()
-            .post(&url)
-            .set("content-type", "application/json");
+        let mut req = agent().post(&url).set("content-type", "application/json");
         if !key.is_empty() {
             req = req.set("authorization", &format!("Bearer {key}"));
         }
@@ -672,13 +687,14 @@ fn call_openai_compat(
                 Ok(r) => {
                     set_uses_completion_tokens(&cfg.id, flipped);
                     let reader = r.into_reader().take(MAX_RESPONSE_BYTES);
-                    let v: serde_json::Value =
-                        serde_json::from_reader(reader).map_err(|e| format!("réponse illisible : {e}"))?;
+                    let v: serde_json::Value = serde_json::from_reader(reader)
+                        .map_err(|e| format!("réponse illisible : {e}"))?;
                     let content = v["choices"][0]["message"]["content"]
                         .as_str()
                         .map(String::from)
                         .filter(|t| !t.trim().is_empty());
-                    return content.ok_or_else(|| "Réponse vide : augmente la limite de tokens".to_string());
+                    return content
+                        .ok_or_else(|| "Réponse vide : augmente la limite de tokens".to_string());
                 }
                 Err(ureq::Error::Status(retry_code, retry_r)) => {
                     let detail = retry_r
@@ -717,7 +733,9 @@ fn call_openai_compat(
                 .and_then(|v| v["error"]["message"].as_str().map(String::from))
                 .unwrap_or_default();
             Err(match code {
-                301 | 302 | 307 | 308 => "redirection bloquée par sécurité (risque de fuite de clé)".into(),
+                301 | 302 | 307 | 308 => {
+                    "redirection bloquée par sécurité (risque de fuite de clé)".into()
+                }
                 401 | 403 => "clé API refusée".into(),
                 429 => "limite de requêtes atteinte, réessaie dans un moment".into(),
                 503 | 529 => "service momentanément surchargé, réessaie".into(),

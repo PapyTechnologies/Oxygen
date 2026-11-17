@@ -187,7 +187,11 @@ mod tests {
 
         // Plafonnement à 2000 entrées
         for i in 0..2100 {
-            add_history_pure(&mut list, format!("https://site{i}.org"), format!("Site {i}"));
+            add_history_pure(
+                &mut list,
+                format!("https://site{i}.org"),
+                format!("Site {i}"),
+            );
         }
         assert_eq!(list.len(), MAX_HISTORY_ENTRIES);
     }

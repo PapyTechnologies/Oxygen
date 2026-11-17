@@ -8,11 +8,11 @@ use std::sync::Mutex;
 use std::sync::OnceLock;
 use tauri::Manager;
 
-pub use lightbrowser_core::store::{Bookmark, HistoryEntry};
 use lightbrowser_core::store::{
     add_bookmark_pure, add_history_pure, filter_history_pure, load_json_or_default,
     remove_bookmark_pure,
 };
+pub use lightbrowser_core::store::{Bookmark, HistoryEntry};
 
 #[derive(Default, Debug)]
 pub struct StoreData {

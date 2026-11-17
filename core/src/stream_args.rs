@@ -7,7 +7,12 @@ pub enum Source {
     Screen,
     Window(String),
     Webcam(String),
-    Region { x: i32, y: i32, width: u32, height: u32 },
+    Region {
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
     Pause(String),
 }
 
@@ -100,8 +105,20 @@ impl Config {
 /// Encodage d'essai d'une image : réussit seulement si l'encodeur est réellement utilisable.
 pub fn probe_args(enc: Encoder) -> Vec<String> {
     [
-        "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
-        "color=black:s=256x256:r=1", "-frames:v", "1", "-c:v", enc.name(), "-f", "null", "-",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=black:s=256x256:r=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        enc.name(),
+        "-f",
+        "null",
+        "-",
     ]
     .iter()
     .map(|s| s.to_string())
@@ -110,10 +127,18 @@ pub fn probe_args(enc: Encoder) -> Vec<String> {
 
 /// Arguments pour lister les périphériques DirectShow (résultat sur stderr, code retour 1 normal).
 pub fn list_devices_args() -> Vec<String> {
-    ["-hide_banner", "-list_devices", "true", "-f", "dshow", "-i", "dummy"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect()
+    [
+        "-hide_banner",
+        "-list_devices",
+        "true",
+        "-f",
+        "dshow",
+        "-i",
+        "dummy",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect()
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -200,7 +225,10 @@ pub fn overlay_graph_pre(w: u32, h: u32, o: &Overlay, pre: &str) -> String {
         Corner::TopLeft => (format!("{m}"), format!("{m}")),
         Corner::TopRight => (format!("main_w-overlay_w-{m}"), format!("{m}")),
         Corner::BottomLeft => (format!("{m}"), format!("main_h-overlay_h-{m}")),
-        Corner::BottomRight => (format!("main_w-overlay_w-{m}"), format!("main_h-overlay_h-{m}")),
+        Corner::BottomRight => (
+            format!("main_w-overlay_w-{m}"),
+            format!("main_h-overlay_h-{m}"),
+        ),
     };
     format!(
         "[0:v]{pre}scale={w}:{h}:force_original_aspect_ratio=decrease:flags=fast_bilinear,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2[base];[1:v]scale={ow}:-2:flags=fast_bilinear[cam];[base][cam]overlay={x}:{y},format=yuv420p[v]"
@@ -224,7 +252,9 @@ fn validate(c: &Config) -> Result<(), String> {
         if !(o.starts_with("rtmp://") || o.starts_with("rtmps://")) {
             return Err("destination : URL rtmp(s):// requise".into());
         }
-        if o.chars().any(|ch| matches!(ch, '|' | '"' | ' ' | '[' | ']')) {
+        if o.chars()
+            .any(|ch| matches!(ch, '|' | '"' | ' ' | '[' | ']'))
+        {
             return Err("destination : caractères interdits dans l'URL".into());
         }
     }
@@ -272,7 +302,9 @@ fn validate(c: &Config) -> Result<(), String> {
         if !r.to_ascii_lowercase().ends_with(".mkv") {
             return Err("enregistrement : extension .mkv requise".into());
         }
-        if r.chars().any(|ch| matches!(ch, '|' | '"' | '\'' | '\\' | '[' | ']')) {
+        if r.chars()
+            .any(|ch| matches!(ch, '|' | '"' | '\'' | '\\' | '[' | ']'))
+        {
             return Err("enregistrement : caractères interdits dans le chemin".into());
         }
     }
@@ -287,12 +319,24 @@ pub fn build_args(c: &Config) -> Result<Vec<String>, String> {
     validate(c)?;
     let fps = c.fps.to_string();
     let b = c.bitrate_kbps;
-    let (bitrate, bufsize, gop) = (format!("{b}k"), format!("{}k", b * 2), (c.fps * 2).to_string());
+    let (bitrate, bufsize, gop) = (
+        format!("{b}k"),
+        format!("{}k", b * 2),
+        (c.fps * 2).to_string(),
+    );
     let mut a: Vec<String> = Vec::new();
-    p(&mut a, &["-hide_banner", "-loglevel", "warning", "-nostats", "-y"]);
+    p(
+        &mut a,
+        &["-hide_banner", "-loglevel", "warning", "-nostats", "-y"],
+    );
 
-    let use_dda = (matches!(c.source, Source::Screen) || matches!(c.source, Source::Region { .. })) && c.use_ddagrab;
-    let pre = if use_dda { "hwdownload,format=bgra," } else { "" };
+    let use_dda = (matches!(c.source, Source::Screen) || matches!(c.source, Source::Region { .. }))
+        && c.use_ddagrab;
+    let pre = if use_dda {
+        "hwdownload,format=bgra,"
+    } else {
+        ""
+    };
 
     // Entrée 0 : vidéo
     match &c.source {
@@ -301,23 +345,50 @@ pub fn build_args(c: &Config) -> Result<Vec<String>, String> {
                 let i = format!("ddagrab=framerate={fps}:draw_mouse=1");
                 p(&mut a, &["-f", "lavfi", "-i", &i]);
             } else {
-                p(&mut a, &["-thread_queue_size", "512", "-f", "gdigrab", "-framerate", &fps, "-i", "desktop"]);
+                p(
+                    &mut a,
+                    &[
+                        "-thread_queue_size",
+                        "512",
+                        "-f",
+                        "gdigrab",
+                        "-framerate",
+                        &fps,
+                        "-i",
+                        "desktop",
+                    ],
+                );
             }
         }
-        Source::Region { x, y, width, height } => {
+        Source::Region {
+            x,
+            y,
+            width,
+            height,
+        } => {
             if use_dda {
                 let i = format!("ddagrab=framerate={fps}:draw_mouse=1:offset_x={x}:offset_y={y}:video_size={width}x{height}");
                 p(&mut a, &["-f", "lavfi", "-i", &i]);
             } else {
-                p(&mut a, &[
-                    "-thread_queue_size", "512",
-                    "-f", "gdigrab",
-                    "-framerate", &fps,
-                    "-offset_x", &x.to_string(),
-                    "-offset_y", &y.to_string(),
-                    "-video_size", &format!("{width}x{height}"),
-                    "-i", "desktop",
-                ]);
+                p(
+                    &mut a,
+                    &[
+                        "-thread_queue_size",
+                        "512",
+                        "-f",
+                        "gdigrab",
+                        "-framerate",
+                        &fps,
+                        "-offset_x",
+                        &x.to_string(),
+                        "-offset_y",
+                        &y.to_string(),
+                        "-video_size",
+                        &format!("{width}x{height}"),
+                        "-i",
+                        "desktop",
+                    ],
+                );
             }
         }
         Source::Pause(path) => {
@@ -330,31 +401,87 @@ pub fn build_args(c: &Config) -> Result<Vec<String>, String> {
         }
         Source::Window(t) => {
             let i = format!("title={t}");
-            p(&mut a, &["-thread_queue_size", "512", "-f", "gdigrab", "-framerate", &fps, "-i", &i]);
+            p(
+                &mut a,
+                &[
+                    "-thread_queue_size",
+                    "512",
+                    "-f",
+                    "gdigrab",
+                    "-framerate",
+                    &fps,
+                    "-i",
+                    &i,
+                ],
+            );
         }
         Source::Webcam(n) => {
             let i = format!("video={n}");
-            p(&mut a, &["-thread_queue_size", "512", "-f", "dshow", "-framerate", &fps, "-i", &i]);
+            p(
+                &mut a,
+                &[
+                    "-thread_queue_size",
+                    "512",
+                    "-f",
+                    "dshow",
+                    "-framerate",
+                    &fps,
+                    "-i",
+                    &i,
+                ],
+            );
         }
     }
 
     // Entrée 1 (optionnelle) : webcam incrustée ; les entrées audio suivent.
     if let Some(o) = &c.overlay {
         let i = format!("video={}", o.webcam);
-        p(&mut a, &["-thread_queue_size", "512", "-f", "dshow", "-framerate", &fps, "-i", &i]);
+        p(
+            &mut a,
+            &[
+                "-thread_queue_size",
+                "512",
+                "-f",
+                "dshow",
+                "-framerate",
+                &fps,
+                "-i",
+                &i,
+            ],
+        );
     }
 
     // Entrées audio : micro (1), puis son système. Silence si aucune (les plateformes exigent une piste audio).
-    let sources: Vec<(&String, f32)> = [(&c.audio_device, c.mic_volume), (&c.system_audio_device, c.system_volume)]
-        .into_iter()
-        .filter_map(|(d, v)| d.as_ref().map(|n| (n, v)))
-        .collect();
+    let sources: Vec<(&String, f32)> = [
+        (&c.audio_device, c.mic_volume),
+        (&c.system_audio_device, c.system_volume),
+    ]
+    .into_iter()
+    .filter_map(|(d, v)| d.as_ref().map(|n| (n, v)))
+    .collect();
     for (name, _) in &sources {
         if name.starts_with("tcp://") {
-            p(&mut a, &["-thread_queue_size", "512", "-f", "s16le", "-ar", "48000", "-ac", "2", "-i", name]);
+            p(
+                &mut a,
+                &[
+                    "-thread_queue_size",
+                    "512",
+                    "-f",
+                    "s16le",
+                    "-ar",
+                    "48000",
+                    "-ac",
+                    "2",
+                    "-i",
+                    name,
+                ],
+            );
         } else {
             let i = format!("audio={name}");
-            p(&mut a, &["-thread_queue_size", "512", "-f", "dshow", "-i", &i]);
+            p(
+                &mut a,
+                &["-thread_queue_size", "512", "-f", "dshow", "-i", &i],
+            );
         }
     }
     // Première entrée audio : 1, ou 2 si la webcam est incrustée.
@@ -401,25 +528,99 @@ pub fn build_args(c: &Config) -> Result<Vec<String>, String> {
     p(&mut a, &["-map", &vmap, "-map", &amap]);
 
     match c.encoder {
-        Encoder::Nvenc => p(&mut a, &[
-            "-c:v", "h264_nvenc", "-preset", "p4", "-tune", "ll", "-rc", "cbr", "-b:v", &bitrate,
-            "-maxrate", &bitrate, "-bufsize", &bufsize, "-g", &gop, "-bf", "0", "-profile:v", "high",
-        ]),
-        Encoder::Qsv => p(&mut a, &[
-            "-c:v", "h264_qsv", "-preset", "veryfast", "-look_ahead", "0", "-b:v", &bitrate,
-            "-maxrate", &bitrate, "-g", &gop, "-profile:v", "high",
-        ]),
-        Encoder::Amf => p(&mut a, &[
-            "-c:v", "h264_amf", "-usage", "lowlatency", "-rc", "cbr", "-b:v", &bitrate,
-            "-maxrate", &bitrate, "-g", &gop, "-bf", "0", "-profile:v", "high",
-        ]),
-        Encoder::X264 => p(&mut a, &[
-            "-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency", "-b:v", &bitrate,
-            "-maxrate", &bitrate, "-bufsize", &bufsize, "-g", &gop, "-profile:v", "high",
-            "-x264-params", "nal-hrd=cbr",
-        ]),
+        Encoder::Nvenc => p(
+            &mut a,
+            &[
+                "-c:v",
+                "h264_nvenc",
+                "-preset",
+                "p4",
+                "-tune",
+                "ll",
+                "-rc",
+                "cbr",
+                "-b:v",
+                &bitrate,
+                "-maxrate",
+                &bitrate,
+                "-bufsize",
+                &bufsize,
+                "-g",
+                &gop,
+                "-bf",
+                "0",
+                "-profile:v",
+                "high",
+            ],
+        ),
+        Encoder::Qsv => p(
+            &mut a,
+            &[
+                "-c:v",
+                "h264_qsv",
+                "-preset",
+                "veryfast",
+                "-look_ahead",
+                "0",
+                "-b:v",
+                &bitrate,
+                "-maxrate",
+                &bitrate,
+                "-g",
+                &gop,
+                "-profile:v",
+                "high",
+            ],
+        ),
+        Encoder::Amf => p(
+            &mut a,
+            &[
+                "-c:v",
+                "h264_amf",
+                "-usage",
+                "lowlatency",
+                "-rc",
+                "cbr",
+                "-b:v",
+                &bitrate,
+                "-maxrate",
+                &bitrate,
+                "-g",
+                &gop,
+                "-bf",
+                "0",
+                "-profile:v",
+                "high",
+            ],
+        ),
+        Encoder::X264 => p(
+            &mut a,
+            &[
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-tune",
+                "zerolatency",
+                "-b:v",
+                &bitrate,
+                "-maxrate",
+                &bitrate,
+                "-bufsize",
+                &bufsize,
+                "-g",
+                &gop,
+                "-profile:v",
+                "high",
+                "-x264-params",
+                "nal-hrd=cbr",
+            ],
+        ),
     }
-    p(&mut a, &["-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2"]);
+    p(
+        &mut a,
+        &["-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2"],
+    );
 
     // 1 RTMP sans enregistrement : sortie directe. Sinon un seul encodage, N copies via tee.
     match (&c.record_path, c.outputs.len()) {
@@ -427,7 +628,11 @@ pub fn build_args(c: &Config) -> Result<Vec<String>, String> {
         (rec, n) => {
             // onfail=ignore : une destination qui tombe ne coupe pas les autres.
             // Exception : 1 RTMP + MKV -> abort, pour que FFmpeg s'arrête et que la reconnexion se déclenche.
-            let policy = if rec.is_some() && n == 1 { "abort" } else { "ignore" };
+            let policy = if rec.is_some() && n == 1 {
+                "abort"
+            } else {
+                "ignore"
+            };
             let mut slaves: Vec<String> = c
                 .outputs
                 .iter()
@@ -467,14 +672,19 @@ mod tests {
     use super::*;
 
     fn cfg(n: usize) -> Config {
-        let outs = (0..n).map(|i| format!("rtmp://h{i}.example/app/KEY{i}")).collect();
+        let outs = (0..n)
+            .map(|i| format!("rtmp://h{i}.example/app/KEY{i}"))
+            .collect();
         Config::new(Source::Screen, outs)
     }
 
     #[test]
     fn une_destination_flv_direct() {
         let a = build_args(&cfg(1)).unwrap();
-        assert_eq!(&a[a.len() - 3..], ["-f", "flv", "rtmp://h0.example/app/KEY0"]);
+        assert_eq!(
+            &a[a.len() - 3..],
+            ["-f", "flv", "rtmp://h0.example/app/KEY0"]
+        );
         assert!(a.contains(&"libx264".to_string()));
     }
 
@@ -491,7 +701,9 @@ mod tests {
     fn fenetre_et_webcam() {
         let mut c = cfg(1);
         c.source = Source::Window("Ma Fenêtre".into());
-        assert!(build_args(&c).unwrap().contains(&"title=Ma Fenêtre".to_string()));
+        assert!(build_args(&c)
+            .unwrap()
+            .contains(&"title=Ma Fenêtre".to_string()));
         c.source = Source::Webcam("Cam".into());
         c.audio_device = Some("Micro".into());
         let a = build_args(&c).unwrap();
@@ -557,7 +769,9 @@ mod tests {
         c.system_audio_device = Some("Stereo Mix".into());
         c.system_volume = 0.5;
         let a = build_args(&c).unwrap();
-        assert!(a.contains(&"audio=Micro".to_string()) && a.contains(&"audio=Stereo Mix".to_string()));
+        assert!(
+            a.contains(&"audio=Micro".to_string()) && a.contains(&"audio=Stereo Mix".to_string())
+        );
         let i = a.iter().position(|s| s == "-filter_complex").unwrap();
         assert!(a[i + 1].contains("amix=inputs=2") && a[i + 1].contains("volume=0.50"));
         assert!(a.contains(&"[a]".to_string()));
@@ -608,7 +822,10 @@ mod tests {
                  [dshow @ 0]  \"Stereo Mix (Realtek)\"\n";
         let d = parse_dshow_devices(s);
         assert_eq!(d.video, vec!["Integrated Camera"]);
-        assert_eq!(d.audio, vec!["Microphone (Realtek)", "Stereo Mix (Realtek)"]);
+        assert_eq!(
+            d.audio,
+            vec!["Microphone (Realtek)", "Stereo Mix (Realtek)"]
+        );
     }
 
     #[test]
@@ -624,7 +841,12 @@ mod tests {
 
     fn cfg_overlay(corner: Corner) -> Config {
         let mut c = cfg(1);
-        c.overlay = Some(Overlay { webcam: "Cam".into(), corner, size_pct: 25, margin_px: 20 });
+        c.overlay = Some(Overlay {
+            webcam: "Cam".into(),
+            corner,
+            size_pct: 25,
+            margin_px: 20,
+        });
         c
     }
 
@@ -644,10 +866,17 @@ mod tests {
 
     #[test]
     fn incrustation_coins() {
-        let mk = |corner| Overlay { webcam: "C".into(), corner, size_pct: 25, margin_px: 10 };
+        let mk = |corner| Overlay {
+            webcam: "C".into(),
+            corner,
+            size_pct: 25,
+            margin_px: 10,
+        };
         assert!(overlay_graph(1920, 1080, &mk(Corner::TopLeft)).contains("overlay=10:10"));
-        assert!(overlay_graph(1920, 1080, &mk(Corner::TopRight)).contains("overlay=main_w-overlay_w-10:10"));
-        assert!(overlay_graph(1920, 1080, &mk(Corner::BottomLeft)).contains("overlay=10:main_h-overlay_h-10"));
+        assert!(overlay_graph(1920, 1080, &mk(Corner::TopRight))
+            .contains("overlay=main_w-overlay_w-10:10"));
+        assert!(overlay_graph(1920, 1080, &mk(Corner::BottomLeft))
+            .contains("overlay=10:main_h-overlay_h-10"));
     }
 
     #[test]
@@ -658,7 +887,11 @@ mod tests {
         let a = build_args(&c).unwrap();
         assert_eq!(a.iter().filter(|s| *s == "-filter_complex").count(), 1);
         let i = a.iter().position(|s| s == "-filter_complex").unwrap();
-        assert!(a[i + 1].contains("[2:a]") && a[i + 1].contains("[3:a]") && a[i + 1].contains("amix=inputs=2"));
+        assert!(
+            a[i + 1].contains("[2:a]")
+                && a[i + 1].contains("[3:a]")
+                && a[i + 1].contains("amix=inputs=2")
+        );
     }
 
     #[test]
@@ -713,7 +946,15 @@ mod tests {
 
     #[test]
     fn mkv_validations() {
-        for bad in ["", "  ", "C:/v/live.mp4", "C:/v/a|b.mkv", "C:\\v\\live.mkv", "C:/v/[x].mkv", "C:/v/o'x.mkv"] {
+        for bad in [
+            "",
+            "  ",
+            "C:/v/live.mp4",
+            "C:/v/a|b.mkv",
+            "C:\\v\\live.mkv",
+            "C:/v/[x].mkv",
+            "C:/v/o'x.mkv",
+        ] {
             let mut c = cfg(1);
             c.record_path = Some(bad.into());
             assert!(build_args(&c).is_err(), "devrait échouer : {bad}");
@@ -735,7 +976,12 @@ mod tests {
     fn mkv_avec_incrustation() {
         let mut c = cfg(1);
         c.record_path = Some("C:/Videos/live.mkv".into());
-        c.overlay = Some(Overlay { webcam: "Cam".into(), corner: Corner::TopLeft, size_pct: 25, margin_px: 20 });
+        c.overlay = Some(Overlay {
+            webcam: "Cam".into(),
+            corner: Corner::TopLeft,
+            size_pct: 25,
+            margin_px: 20,
+        });
         let a = build_args(&c).unwrap();
         assert!(a.contains(&"-filter_complex".to_string()));
         assert!(a.last().unwrap().contains("matroska"));
@@ -758,7 +1004,12 @@ mod tests {
         let mut c = cfg(1);
         c.source = Source::Screen;
         c.use_ddagrab = true;
-        c.overlay = Some(Overlay { webcam: "Cam".into(), corner: Corner::TopLeft, size_pct: 25, margin_px: 20 });
+        c.overlay = Some(Overlay {
+            webcam: "Cam".into(),
+            corner: Corner::TopLeft,
+            size_pct: 25,
+            margin_px: 20,
+        });
         c.audio_device = Some("Micro".into());
         c.system_audio_device = Some("Stereo Mix".into());
         let a = build_args(&c).unwrap();
@@ -781,10 +1032,17 @@ mod tests {
     #[test]
     fn region_ddagrab() {
         let mut c = cfg(1);
-        c.source = Source::Region { x: 100, y: 120, width: 1650, height: 950 };
+        c.source = Source::Region {
+            x: 100,
+            y: 120,
+            width: 1650,
+            height: 950,
+        };
         c.use_ddagrab = true;
         let a = build_args(&c).unwrap();
-        assert!(a.iter().any(|s| s.contains("ddagrab=framerate=") && s.contains("offset_x=100") && s.contains("video_size=1650x950")));
+        assert!(a.iter().any(|s| s.contains("ddagrab=framerate=")
+            && s.contains("offset_x=100")
+            && s.contains("video_size=1650x950")));
         let i = a.iter().position(|s| s == "-vf").unwrap();
         assert!(a[i + 1].starts_with("hwdownload,format=bgra,scale="));
     }
@@ -792,7 +1050,12 @@ mod tests {
     #[test]
     fn region_gdigrab() {
         let mut c = cfg(1);
-        c.source = Source::Region { x: 50, y: 80, width: 1280, height: 720 };
+        c.source = Source::Region {
+            x: 50,
+            y: 80,
+            width: 1280,
+            height: 720,
+        };
         c.use_ddagrab = false;
         let a = build_args(&c).unwrap();
         assert!(a.contains(&"-offset_x".to_string()));
@@ -809,6 +1072,8 @@ mod tests {
         let mut c = cfg(1);
         c.source = Source::Pause(String::new());
         let a = build_args(&c).unwrap();
-        assert!(a.iter().any(|s| s.starts_with("color=c=#14151a:s=1920x1080")));
+        assert!(a
+            .iter()
+            .any(|s| s.starts_with("color=c=#14151a:s=1920x1080")));
     }
 }
