@@ -29,17 +29,6 @@
   <img src="assets/social-preview.png" alt="Aperçu d'Oxygen" width="920"/>
 </p>
 
-<!--
-Captures d'écran à placer dans assets/screenshots/ :
-- 01_navigation_overview.png
-- 02_adblock_protection.png
-- 03_ai_assistant.png
-- 04_live_streaming_panel.png
-- 05_downloads_manager.png
--->
-
-> *Le guide des captures et les emplacements prévus sont détaillés dans le [Répertoire Screenshots](assets/screenshots/).*
-
 ---
 
 ## ⚡ Points Forts & Capacités Clés
@@ -172,7 +161,7 @@ flowchart TD
 ### Principes de Confidentialité & Durcissement
 - **Stockage des secrets** : Les clés d'API et jetons de streaming ne sont jamais écrits en clair sur le disque ni dans des fichiers `.env`. Ils s'appuient sur l'API Windows DPAPI sécurisée.
 - **Cloisonnement des processus** : Le code web tiers s'exécute dans les processus bac à sable (sandbox) de Microsoft WebView2, sans permissions d'accès direct au système de fichiers hôte.
-- **Télémétrie** : Aucune collecte de données utilisateur, aucun pistage externe.
+- **Télémétrie** : Oxygen ne collecte et n'envoie aucune donnée d'utilisation. Les requêtes réseau sont adressées exclusivement aux fournisseurs d'IA ou aux serveurs de streaming que vous configurez, ainsi qu'aux sites web que vous visitez.
 
 ---
 
