@@ -26,14 +26,32 @@
 ## 📸 Aperçu & Vitrine
 
 <p align="center">
-  <img src="assets/social-preview.png" alt="Aperçu d'Oxygen" width="920"/>
+  <img src="assets/screenshots/01_navigation_overview.png" alt="Aperçu d'Oxygen" width="920"/>
 </p>
+
+<details>
+<summary><b>Voir la galerie de l'interface</b></summary>
+<br>
+
+| Assistant IA | Diffusion en direct |
+| :---: | :---: |
+| <img src="assets/screenshots/03_ai_assistant.png" alt="Assistant IA" width="440"/> | <img src="assets/screenshots/04_live_streaming_panel.png" alt="Panneau de streaming" width="440"/> |
+
+| Bloqueur de publicités | Gestionnaire de téléchargements |
+| :---: | :---: |
+| <img src="assets/screenshots/02_adblock_protection.png" alt="Bloqueur de publicités" width="440"/> | <img src="assets/screenshots/05_downloads_manager.png" alt="Gestionnaire de téléchargements" width="440"/> |
+
+</details>
 
 ---
 
 ## ⚡ Points Forts & Capacités Clés
 
-- **Empreinte mémoire maîtrisée** : Conçu en Rust avec l'arborescence native des processus WebView2. Intègre une hibernation intelligente LRU des onglets inactifs et le compactage de l'espace de travail. Les utilisateurs sont invités à mesurer leurs gains de mémoire réels via le panneau de diagnostic RAM intégré.
+- **Empreinte mémoire ultra-maîtrisée** : Conçu en Rust avec une configuration avancée des flags runtime WebView2. Intègre une hibernation intelligente LRU des onglets inactifs, la mutualisation stricte des sous-processus utilitaires (`--enable-features=NetworkServiceInProcess`, `--renderer-process-limit=1`) et le compactage de la mémoire de travail :
+  - **Taille du binaire release** : **~6,39 Mo** (compilé avec optimisation de taille `opt-level = "z"`, LTO et stripping des symboles de débogage).
+  - **Empreinte hôte Rust** : **~26 Mo Working Set / ~7 Mo Private Bytes** au runtime.
+  - **Mise à l'échelle multi-onglets** : **~783 Mo de RAM totale** pour 8 onglets lourds simultanés (YouTube, Facebook, GitHub, etc.) grâce au bornage strict des caches et à l'hibernation native.
+  - Mesure et inspection en temps réel via le panneau de diagnostic RAM intégré.
 - **Bloqueur de publicités et traqueurs natif** : Filtrage réseau des requêtes et domaines directement dans le moteur Rust, sans la surcharge d'extensions tierces lourdes.
 - **Assistant IA avec coffre Windows** :
   - Clés API stockées dans le Windows Credential Manager, jamais écrites sur disque.

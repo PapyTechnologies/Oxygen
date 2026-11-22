@@ -1,22 +1,9 @@
 # Rust / Cargo
-/target/
-/rust-target/
-/**/target/
-
-# Node / Frontend
-/node_modules/
-/dist/
-/.cache/
-
-# Tauri generated
-/src-tauri/target/
-/src-tauri/gen/
-
-# Sensitive files and keys
-.env*
-*.key
-*.pem
-*.pfx
+target/
+rust-target/
+**/target/
+src-tauri/target/
+src-tauri/gen/
 
 # Binaries and build artifacts
 *.exe
@@ -25,17 +12,40 @@
 *.pdb
 *.rlib
 
-# Sub-crates Cargo.lock (root Cargo.lock is tracked)
-core/Cargo.lock
-src-tauri/Cargo.lock
-
-# Media, recordings, captures and temp
-*.mkv
-*.mp4
+# Logs and debug files
 *.log
 *.tmp
 *.zip
 *.rec
+
+# Sensitive files and keys
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+*.cer
+
+# WebView2 local data & caches
+EBWebView/
+**/EBWebView/
+*.WebView2/
+Crashpad/
+**/Crashpad/
+
+# Node / Frontend
+node_modules/
+/dist/
+/.cache/
+
+# Sub-crates Cargo.lock (root Cargo.lock is tracked)
+core/Cargo.lock
+src-tauri/Cargo.lock
+
+# Media, recordings, captures
+*.mkv
+*.mp4
 captures/
 recordings/
 screenshots_private/

@@ -26,14 +26,32 @@
 ## 📸 Showcase
 
 <p align="center">
-  <img src="assets/social-preview.png" alt="Oxygen Overview" width="920"/>
+  <img src="assets/screenshots/01_navigation_overview.png" alt="Oxygen Overview" width="920"/>
 </p>
+
+<details>
+<summary><b>View Interface Gallery</b></summary>
+<br>
+
+| AI Assistant | Live Streaming |
+| :---: | :---: |
+| <img src="assets/screenshots/03_ai_assistant.png" alt="AI Assistant" width="440"/> | <img src="assets/screenshots/04_live_streaming_panel.png" alt="Streaming Panel" width="440"/> |
+
+| Adblocker Protection | Downloads Manager |
+| :---: | :---: |
+| <img src="assets/screenshots/02_adblock_protection.png" alt="Adblocker Protection" width="440"/> | <img src="assets/screenshots/05_downloads_manager.png" alt="Downloads Manager" width="440"/> |
+
+</details>
 
 ---
 
 ## ⚡ Highlights & Key Capabilities
 
-- **Lean Memory Footprint**: Engineered with Rust and native WebView2 process trees. Features active LRU tab hibernation and working-set compaction to conserve memory across workloads. Users can inspect their real-time memory usage directly via the browser's built-in RAM diagnostic panel.
+- **Lean Memory Footprint**: Engineered with Rust and optimized native WebView2 runtime flags. Features active LRU tab hibernation, strict utility sub-process mutualization (`--enable-features=NetworkServiceInProcess`, `--renderer-process-limit=1`), and working-set compaction:
+  - **Executable Release Binary**: **~6.39 MB** (compiled with size optimization `opt-level = "z"`, LTO, and stripped symbols).
+  - **Rust Host Process**: **~26 MB Working Set / ~7 MB Private Bytes** at runtime.
+  - **Multi-Tab Resource Scaling**: **~783 MB total system RAM** with 8 concurrent heavy tabs (YouTube, Facebook, GitHub, etc.) thanks to bounded caches and native memory hibernation.
+  - Inspect your real-time memory usage directly via the browser's built-in RAM diagnostic panel.
 - **Native Ad & Tracker Blocker**: In-engine URL and domain rule matching inspired by EasyList patterns without the overhead of heavy third-party extensions.
 - **AI Assistant with Windows Credential Vault**:
   - API keys stored in the Windows Credential Manager, never written to disk.

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oxygen</title>
+    <link rel="icon" type="image/png" href="/src/app-icon.png" />
+    <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+    <main class="app">
+        <!-- Barre d'onglets supérieure -->
+        <div class="tabs-bar" id="tabs-bar">
+            <div class="tabs-list" id="tabs-list"></div>
+            <button class="new-tab-btn" id="new-tab-btn" title="Nouvel onglet">+</button>
+            <button class="new-tab-btn" id="new-private-tab-btn" title="Nouvel onglet privé (Ctrl+Maj+N)">🕵️</button>
+        </div>
+
+        <!-- Barre de navigation -->
+        <header class="toolbar">
+            <button id="back" title="Précédent">←</button>
+            <button id="forward" title="Suivant">→</button>
+            <button id="reload" title="Actualiser">⟳</button>
+            <div class="url-bar-container">
+                <input
+                    id="url"
+                    type="text"
+                    placeholder="Rechercher ou saisir une adresse"
+                    autocomplete="off"
+                />
+                <button id="star" class="star-btn" title="Ajouter aux favoris">★</button>
+                <div id="suggestions" class="suggestions-popup" style="display:none;"></div>
+            </div>
+            <button id="go">Aller</button>
+            <button id="bookmarks-menu-btn" class="toolbar-btn" title="Favoris et historique (Ctrl+Maj+B)">★</button>
+            <button id="downloads-btn" class="toolbar-btn" title="Téléchargements" style="position: relative;">📥<span id="downloads-badge" style="display: none; position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span></button>
+            <button id="stream-menu-btn" class="toolbar-btn" title="Diffusion en direct (Stream)">📡</button>
+            <button id="ai-btn" class="toolbar-btn ai-btn" title="Assistant IA" aria-label="Assistant IA"><span class="ai-btn-icon">✨</span><span class="ai-btn-text">AI</span></button>
+            <div id="ram-badge" class="ram-badge" title="Mesure de la RAM en direct">RAM ≈ -- Mo</div>
+            <div id="toast" class="toolbar-toast" style="display: none;"></div>
+
+            <!-- Panneau de diffusion en direct -->
+            <div id="stream-dropdown" class="stream-dropdown" style="display: none;">
+                <div class="dropdown-header">
+                    <span class="stream-panel-title">📡 Diffusion en direct</span>
+                    <button id="stream-close-btn" class="dropdown-close-btn" title="Fermer">×</button>
+                </div>
+                <div class="stream-dropdown-content">
+                    <div class="stream-section">
+                        <label class="stream-label" for="stream-source">Source vidéo</label>
+                        <select id="stream-source" class="stream-select">
+                            <option value="AppWindow" selected>Fenêtre Oxygen</option>
+                            <option value="Screen">Écran entier</option>
+                            <option value="Window">Fenêtre spécifique</option>
+                            <option value="Webcam">Webcam</option>
+                        </select>
+                        <div id="stream-screen-warn" style="display: none; font-size: 11px; color: #f59e0b; margin-top: 4px;">
+                            ⚠ Tout l'écran est diffusé, notifications comprises.
+                        </div>
+                        <input id="stream-target" class="stream-input" type="text" placeholder="Titre de la fenêtre (ex: Oxygen)" style="display: none; margin-top: 6px;" />
+                        <select id="stream-cam" class="stream-select" style="display: none; margin-top: 6px;"></select>
+                    </div>
+
+                    <div class="stream-section" id="stream-overlay-section">
+                        <div class="stream-dest-row">
+                            <label><input type="checkbox" id="stream-overlay" /> Incruster la webcam</label>
+                        </div>
+                        <div id="stream-overlay-controls" style="display: none; flex-direction: column; gap: 6px; margin-top: 4px;">
+                            <label class="stream-label" for="stream-corner">Position</label>
+                            <select id="stream-corner" class="stream-select">
+                                <option value="bottom-right">Bas droite</option>
+                                <option value="bottom-left">Bas gauche</option>
+                                <option value="top-right">Haut droite</option>
+                                <option value="top-left">Haut gauche</option>
+                            </select>
+                            <div class="stream-vol-row">
+                                <span class="stream-vol-title">Taille</span>
+                                <input id="stream-ov-size" class="stream-slider" type="range" min="5" max="50" value="25" />
+                                <span id="stream-ov-size-val" class="stream-vol-num">25%</span>
+                            </div>
+                            <div class="stream-vol-row">
+                                <span class="stream-vol-title">Marge</span>
+                                <input id="stream-ov-margin" class="stream-slider" type="range" min="0" max="200" value="20" />
+                                <span id="stream-ov-margin-val" class="stream-vol-num">20px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stream-section">
+                        <label class="stream-label" for="stream-mic">Microphone</label>
+                        <select id="stream-mic" class="stream-select"></select>
+                        <div class="stream-vol-row">
+                            <span class="stream-vol-title">Volume micro</span>
+                            <input id="mic-vol" class="stream-slider" type="range" min="0" max="200" value="100" />
+                            <span id="mic-vol-val" class="stream-vol-num">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="stream-section">
+                        <label class="stream-label" for="stream-sys">Son du système</label>
+                        <select id="stream-sys" class="stream-select">
+                            <option value="loopback:default" selected>Son de l'ordinateur (automatique)</option>
+                            <option value="">Aucun</option>
+                        </select>
+                        <div class="stream-vol-row">
+                            <span class="stream-vol-title">Volume système</span>
+                            <input id="sys-vol" class="stream-slider" type="range" min="0" max="200" value="100" />
+                            <span id="sys-vol-val" class="stream-vol-num">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="stream-section">
+                        <span class="stream-label">Destinations</span>
+                        <div class="stream-dest-list">
+                            <div class="stream-dest-row">
+                                <label class="dest"><input type="checkbox" id="dest-youtube"> YouTube Live <span id="key-status-youtube" class="key-ok" hidden>✓</span></label>
+                            </div>
+                            <div class="stream-dest-row">
+                                <label class="dest"><input type="checkbox" id="dest-twitch"> Twitch <span id="key-status-twitch" class="key-ok" hidden>✓</span></label>
+                            </div>
+                            <div class="stream-dest-row">
+                                <label class="dest"><input type="checkbox" id="dest-kick"> Kick <span id="key-status-kick" class="key-ok" hidden>✓</span></label>
+                                <input id="url-kick" class="stream-input stream-url-input" type="text" placeholder="URL RTMP (ex: rtmp://...)" style="display: none;" />
+                            </div>
+                            <div class="stream-dest-row">
+                                <label class="dest"><input type="checkbox" id="dest-tiktok"> TikTok Live <span id="key-status-tiktok" class="key-ok" hidden>✓</span></label>
+                                <input id="url-tiktok" class="stream-input stream-url-input" type="text" placeholder="URL RTMP (ex: rtmp://...)" style="display: none;" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stream-section">
+                        <span class="stream-label">Enregistrer une clé de flux</span>
+                        <div class="stream-key-row key-row">
+                            <select id="key-platform" class="stream-select">
+                                <option value="youtube">YouTube</option>
+                                <option value="twitch">Twitch</option>
+                                <option value="kick">Kick</option>
+                                <option value="tiktok">TikTok</option>
+                            </select>
+                            <input id="stream-key-input" class="stream-input key-input" type="password" placeholder="Clé..." autocomplete="off" />
+                            <button id="save-key-btn" class="secondary-btn">Sauver</button>
+                            <button id="delete-key-btn" class="secondary-btn btn-delete" title="Supprimer la clé de cette plateforme" hidden>Suppr</button>
+                        </div>
+                    </div>
+
+                    <div class="stream-section">
+                        <span class="stream-label">Options d'enregistrement</span>
+                        <div class="stream-dest-row">
+                            <label><input type="checkbox" id="stream-record"> Enregistrer en local (MKV, dossier Vidéos)</label>
+                        </div>
+                        <div class="stream-dest-row">
+                            <label><input type="checkbox" id="stream-reconnect" checked> Reconnexion automatique</label>
+                        </div>
+                    </div>
+
+                    <div class="stream-actions">
+                        <div id="stream-indicator" class="stream-indicator">⚪ Inactif</div>
+                        <div class="stream-btn-group">
+                            <button id="start-stream-btn" class="stream-action-btn stream-start">Démarrer</button>
+                            <button id="stop-stream-btn" class="stream-action-btn stream-stop" disabled>Arrêter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panneau Assistant IA -->
+            <section id="ai-panel" class="stream-dropdown" hidden>
+                <div class="dropdown-header">
+                    <span class="stream-panel-title">✨ Assistant IA</span>
+                    <button id="ai-close" class="dropdown-close-btn" title="Fermer">×</button>
+                </div>
+                <div class="stream-dropdown-content ai-body">
+                    <label class="ai-row stream-label">Fournisseur
+                        <select id="ai-provider" class="stream-select" style="margin-top: 4px; width: 100%;">
+                            <option value="anthropic" selected>Anthropic (Claude)</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="github">GitHub Models</option>
+                            <option value="custom">Personnalisé</option>
+                        </select>
+                    </label>
+
+                    <label class="ai-row stream-label">Niveau
+                        <select id="ai-model" class="stream-select" style="margin-top: 4px; width: 100%;">
+                            <option value="fast">Rapide</option>
+                            <option value="balanced" selected>Équilibré</option>
+                            <option value="strong">Puissant</option>
+                        </select>
+                    </label>
+
+                    <details id="ai-provider-settings" style="margin-top: 2px; font-size: 11px; color: #9ca3af;">
+                        <summary style="cursor: pointer; user-select: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚙ Réglages du fournisseur</summary>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                            <label style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">URL de base</span>
+                                <input id="ai-base-url" class="stream-input" type="text" placeholder="https://..." autocomplete="off" />
+                            </label>
+                            <div id="ai-custom-warn" style="display: none; color: #f59e0b; font-size: 11px; line-height: 1.3;">
+                                ⚠ Ce serveur recevra le texte de la page et ta clé.
+                            </div>
+                            <label style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Modèle Rapide</span>
+                                <input id="ai-model-fast" class="stream-input" type="text" list="ai-models-list" placeholder="ex: claude-haiku-5-5" autocomplete="off" />
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Modèle Équilibré</span>
+                                <input id="ai-model-balanced" class="stream-input" type="text" list="ai-models-list" placeholder="ex: claude-sonnet-5-5" autocomplete="off" />
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Modèle Puissant</span>
+                                <input id="ai-model-strong" class="stream-input" type="text" list="ai-models-list" placeholder="ex: claude-opus-5-5" autocomplete="off" />
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Tokens max (réponse, 1 à 16 384)</span>
+                                <input id="ai-max-tokens" class="stream-input" type="number" min="1" max="16384" placeholder="4096" autocomplete="off" />
+                            </label>
+                            <datalist id="ai-models-list"></datalist>
+                            <div class="key-row" style="margin-top: 4px;">
+                                <button id="ai-list-models" class="secondary-btn" style="flex: 1 1 120px;">Lister les modèles</button>
+                                <button id="ai-save-cfg" class="secondary-btn" style="flex: 1 1 100px;">Enregistrer</button>
+                            </div>
+                        </div>
+                    </details>
+
+                    <label class="ai-check-row" style="color: #d1d5db;">
+                        <input type="checkbox" id="ai-consent"> <span id="ai-consent-label">J'accepte que le texte de la page soit envoyé à Anthropic (sur clic uniquement)</span>
+                    </label>
+                    <div class="ai-actions">
+                        <button id="ai-sum" class="secondary-btn">Résumer</button>
+                        <button id="ai-trad" class="secondary-btn">Traduire</button>
+                        <button id="ai-sel" class="secondary-btn">Expliquer la sélection</button>
+                        <button id="ai-clear" class="secondary-btn">Nouvelle conversation</button>
+                    </div>
+                    <div id="ai-out"></div>
+                    <label class="ai-check-row" style="color: #9ca3af;">
+                        <input type="checkbox" id="ai-with-page" checked> <span>Inclure la page courante dans la 1re question</span>
+                    </label>
+                    <div class="ai-ask">
+                        <textarea id="ai-q" rows="2" placeholder="Pose une question…" class="stream-input" style="height: auto; padding: 6px;"></textarea>
+                        <button id="ai-send" class="secondary-btn" style="height: 32px;">Envoyer</button>
+                    </div>
+                    <details style="margin-top: 6px; font-size: 12px; color: #9ca3af;">
+                        <summary style="cursor: pointer; user-select: none;">Clé API <span id="ai-key-state" style="color: #4ade80;"></span></summary>
+                        <div class="key-row" style="margin-top: 8px;">
+                            <input id="ai-key" type="password" placeholder="Clé API pour ce fournisseur…" autocomplete="off" class="stream-input key-input" style="flex: 1 1 120px;">
+                            <button id="ai-key-save" class="secondary-btn">Sauver</button>
+                            <button id="ai-key-check" class="secondary-btn">Vérifier</button>
+                            <button id="ai-key-del" class="secondary-btn btn-delete">Suppr</button>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Panneau Téléchargements (Phase 7) -->
+            <section id="downloads-panel" class="stream-dropdown" hidden>
+                <div class="dropdown-header">
+                    <span class="stream-panel-title">📥 Téléchargements</span>
+                    <button id="downloads-close" class="dropdown-close-btn" title="Fermer">×</button>
+                </div>
+                <div class="stream-dropdown-content downloads-body">
+                    <details id="downloads-settings" style="margin-bottom: 4px; font-size: 11px; color: #9ca3af;">
+                        <summary style="cursor: pointer; user-select: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚙ Options de téléchargement</summary>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                            <label class="ai-check-row" style="color: #d1d5db; margin: 0;">
+                                <input type="checkbox" id="downloads-ask-location"> <span>Demander où enregistrer chaque fichier</span>
+                            </label>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-size: 10px; text-transform: uppercase; color: #9ca3af;">Dossier de destination</span>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <input id="downloads-dir-display" class="stream-input" type="text" readonly style="flex: 1; font-size: 11px; cursor: default; overflow: hidden; text-overflow: ellipsis;" />
+                                    <button id="downloads-change-dir" class="secondary-btn" style="white-space: nowrap; padding: 4px 8px; font-size: 11px;">Changer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <span id="downloads-count-label" style="font-size: 11px; color: #9ca3af;">Fichiers récents</span>
+                        <button id="downloads-clear-all" class="secondary-btn" style="font-size: 11px; padding: 2px 8px;">Tout effacer</button>
+                    </div>
+
+                    <div id="downloads-list" class="downloads-list-container" style="margin-top: 6px;"></div>
+                    <div id="downloads-empty" style="text-align: center; color: #6b7280; font-size: 12px; margin-top: 30px;">
+                        Aucun téléchargement récent
+                    </div>
+                </div>
+            </section>
+
+            <!-- Liste déroulante favoris et historique -->
+            <div id="bookmarks-dropdown" class="bookmarks-dropdown" style="display: none;">
+                <div class="dropdown-header">
+                    <input id="dropdown-search" type="text" placeholder="Rechercher favoris et historique..." autocomplete="off" />
+                    <button id="dropdown-close" class="dropdown-close-btn" title="Fermer">×</button>
+                </div>
+                <div class="dropdown-content">
+                    <div class="dropdown-section">
+                        <div class="dropdown-section-title">⭐ Favoris</div>
+                        <div id="dropdown-bookmarks" class="dropdown-list"></div>
+                    </div>
+                    <div class="dropdown-section">
+                        <div class="dropdown-section-title">🕒 Historique récent</div>
+                        <div id="dropdown-history" class="dropdown-list"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barre de favoris sous la barre d'adresse -->
+        <div class="bookmarks-bar" id="bookmarks-bar" style="display: none;">
+            <div class="bookmarks-bar-list" id="bookmarks-bar-list"></div>
+            <button class="bookmarks-bar-overflow" id="bookmarks-bar-overflow" title="Tous les favoris" style="display: none;">»</button>
+        </div>
+
+        <!-- Page d'accueil uniquement (aucun iframe) -->
+        <section class="start" id="start-page">
+            <div class="start-content">
+                <div id="private-badge" class="private-banner" style="display: none;">🕵️ Mode Privé : session et cookies éphémères isolés, aucune trace dans l'historique</div>
+                <img src="/src/oxygen_logo.png" alt="Oxygen" class="start-logo" />
+                <p>Navigateur léger, privé et anti-pub pour PC modestes.</p>
+                <div class="quick-links">
+                    <button data-url="https://duckduckgo.com">DuckDuckGo</button>
+                    <button data-url="https://wikipedia.org">Wikipédia</button>
+                    <button data-url="https://github.com">GitHub</button>
+                </div>
+
+                <div class="store-container">
+                    <div class="store-section">
+                        <div class="store-header">
+                            <h2>⭐ Favoris</h2>
+                        </div>
+                        <div id="bookmarks-list" class="store-grid"></div>
+                    </div>
+
+                    <div class="store-section">
+                        <div class="store-header">
+                            <h2>🕒 Historique récent</h2>
+                            <div class="history-controls">
+                                <input id="history-search" type="text" placeholder="Rechercher..." />
+                                <button id="clear-history-btn" class="secondary-btn">Effacer</button>
+                            </div>
+                        </div>
+                        <div id="history-list" class="store-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
