@@ -14,7 +14,8 @@ fn main() {
         "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,Translate,MediaRouter",
         "--disk-cache-size=33554432",
         "--media-cache-size=16777216",
-    ].join(" ");
+    ]
+    .join(" ");
 
     std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", flags);
 
